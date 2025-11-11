@@ -3,65 +3,49 @@ import classNames from 'classnames/bind'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { addDays } from 'date-fns'
-import { vi } from 'date-fns/locale' // Hỗ trợ tiếng Việt
+import { vi } from 'date-fns/locale'
+import { Controller } from 'react-hook-form'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { classOptions } from '~/constants/ticket'
 import { Option } from '~/types/option'
-import { airports } from '~/constants/airports'
-import { PassengerCount } from '~/types/passenger'
 import { faBaby, faChild, faUser } from '@fortawesome/free-solid-svg-icons'
 import styles from './Header.module.css'
 import Navbar from '../Navbar'
-import { useMatch, useNavigate } from 'react-router-dom'
+import { useMatch } from 'react-router-dom'
 import { path } from '~/constants/path'
+import useSearchFlights from '~/hooks/useSearchFlight'
+import { useQuery } from '@tanstack/react-query'
+import { airportApi } from '~/apis/airport.api'
 
 const cx = classNames.bind(styles)
+
 export default function Header() {
-    const [departure, setDeparture] = useState('')
-    const [destination, setDestination] = useState('')
     const [showDepartureOptions, setShowDepartureOptions] = useState(false)
     const [showDestinationOptions, setShowDestinationOptions] = useState(false)
     const [isClassOpen, setIsClassOpen] = useState<boolean>(false)
-    const classDropdownRef = useRef<HTMLDivElement>(null)
-    const pageHome = useMatch(path.home)
-    const isPageHome = Boolean(pageHome)
-    const redirectPageSeacrh = useNavigate()
-
-    // Trạng thái và ref cho dropdown số lượng hành khách
     const [isPassengerOpen, setIsPassengerOpen] = useState<boolean>(false)
+
+    const classDropdownRef = useRef<HTMLDivElement>(null)
     const passengerDropdownRef = useRef<HTMLDivElement>(null)
 
-    // Định nghĩa type cho ngày
-    const now = new Date() // 10:49 PM +07, 26/09/2025
-    const cutoffHour = 22
-    const today = new Date(now.setHours(0, 0, 0, 0) + (now.getHours() >= cutoffHour ? 24 * 60 * 60 * 1000 : 0))
-    const maxDate = addDays(today, 30)
-    const [startDate, setStartDate] = useState<Date | null>(today)
-    const [endDate, setEndDate] = useState<Date | null>(null)
-    const [isRoundTrip, setIsRoundTrip] = useState<boolean>(false)
+    const pageHome = useMatch(path.home)
+    const isPageHome = Boolean(pageHome)
 
-    // Trạng thái cho lớp vé
-    const [selectedClass, setSelectedClass] = useState<Option | null>({
-        value: 'economy',
-        label: 'Phổ thông'
-    })
+    const { control, watch, setValue, onSubmitSearch, today, maxDate, handleQuantityChange } = useSearchFlights()
 
-    // Trạng thái cho số lượng hành khách
-    const [selectedOption, setSelectedOption] = useState<PassengerCount>({
-        adult: 1,
-        child: 0,
-        infant: 0
-    })
+    const isRoundTrip = watch('isRoundTrip')
+    const departureValue = watch('departure')
+    const destinationValue = watch('destination')
+    const selectedClass = watch('class')
+    const selectedOption = watch('passengers')
+    const startDate = watch('startDate')
 
-    // Xử lý click ngoài cho từng dropdown
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // Kiểm tra dropdown lớp vé
             if (classDropdownRef.current && !classDropdownRef.current.contains(event.target as Node)) {
                 setIsClassOpen(false)
             }
-            // Kiểm tra dropdown số lượng hành khách
             if (passengerDropdownRef.current && !passengerDropdownRef.current.contains(event.target as Node)) {
                 setIsPassengerOpen(false)
             }
@@ -70,33 +54,27 @@ export default function Header() {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    // Cập nhật endDate khi startDate hoặc isRoundTrip thay đổi
     useEffect(() => {
         if (isRoundTrip && startDate) {
             const newEndDate = addDays(startDate, 2)
-            setEndDate(newEndDate <= maxDate ? newEndDate : maxDate)
+            // Dùng setValue để cập nhật form
+            setValue('endDate', newEndDate <= maxDate ? newEndDate : maxDate)
         } else {
-            setEndDate(null)
+            setValue('endDate', null)
         }
-    }, [isRoundTrip, startDate, maxDate])
+    }, [isRoundTrip, startDate, maxDate, setValue])
 
+    const { data: airportsData, isLoading: isLoadingAirports } = useQuery({
+        queryKey: ['airports'],
+        queryFn: () => airportApi.getAirport(), 
+        staleTime: Infinity
+    })
+
+    const airports = airportsData?.data.data || []
     // Xử lý chọn lớp vé
     const handleClassSelect = (option: Option) => {
-        setSelectedClass(option)
+        setValue('class', option)
         setIsClassOpen(false)
-    }
-
-    // Xử lý thay đổi số lượng
-    const handleQuantityChange = (
-        event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-        type: keyof PassengerCount,
-        change: number
-    ) => {
-        event.preventDefault()
-        setSelectedOption((prev) => {
-            const newValue = Math.max(0, prev[type] + change)
-            return { ...prev, [type]: newValue }
-        })
     }
 
     // Tạo chuỗi hiển thị cho số lượng hành khách
@@ -104,15 +82,11 @@ export default function Header() {
         return `${selectedOption.adult} Người lớn, ${selectedOption.child} Trẻ em, ${selectedOption.infant} Em bé`
     }
 
+    // Nút hoán đổi
     const swapLocations = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault()
-        const temp = departure
-        setDeparture(destination)
-        setDestination(temp)
-    }
-
-    const handleRedirect = () => {
-        redirectPageSeacrh(path.searchFlight)
+        setValue('departure', destinationValue)
+        setValue('destination', departureValue)
     }
 
     return (
@@ -134,11 +108,11 @@ export default function Header() {
                     </h1>
 
                     {/* Form Search */}
-
                     <div className='max-w-[1278px] mx-auto'>
                         <div className='mt-5 w-full h-[1px] bg-white'></div>
 
-                        <form className='relative mt-4'>
+                        {/* QUAN TRỌNG: Thêm onSubmit tại đây */}
+                        <form className='relative mt-4' onSubmit={onSubmitSearch}>
                             {/* group 1 */}
                             <div className='flex items-center justify-end gap-2'>
                                 <div className=''></div>
@@ -163,6 +137,7 @@ export default function Header() {
                                                     d='M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z'
                                                 />
                                             </svg>
+                                            {/* Hiển thị giá trị từ 'watch' */}
                                             <span className='text-[15px] font-semibold'>{getDisplayLabel()}</span>
                                         </div>
                                         <svg
@@ -259,13 +234,14 @@ export default function Header() {
                                     )}
                                 </div>
 
-                                {/*  Dropdown hạng vé */}
+                                {/* Dropdown hạng vé */}
                                 <div className='relative w-[310px]' ref={classDropdownRef}>
                                     <div
                                         className='w-full h-[34px] px-2 py-1 rounded-md border-[1px] border-gray-200 bg-[#ffffff40] text-white text-[14px] font-semibold flex items-center justify-between cursor-pointer'
                                         onClick={() => setIsClassOpen(!isClassOpen)}
                                     >
                                         <span className='text-[15px] font-semibold'>
+                                            {/* Hiển thị giá trị từ 'watch' */}
                                             {selectedClass?.label || 'Chọn lớp vé'}
                                         </span>
                                         <svg
@@ -290,7 +266,7 @@ export default function Header() {
                                                 <li
                                                     key={option.value}
                                                     className='px-2 py-1 flex items-center hover:bg-[#e1e2e2] cursor-pointer gap-2 group'
-                                                    onClick={() => handleClassSelect(option)}
+                                                    onClick={() => handleClassSelect(option)} // Gọi hàm helper
                                                 >
                                                     <div
                                                         className={
@@ -317,7 +293,7 @@ export default function Header() {
 
                             {/* group 2 */}
                             <div className='flex items-center gap-3'>
-                                {/*  */}
+                                {/* Input Sân bay */}
                                 <div className='flex justify-start mt-6'>
                                     <div className='w-[580px] p-4'>
                                         <div className='w-full flex items-center'>
@@ -329,83 +305,96 @@ export default function Header() {
                                             </div>
                                         </div>
                                         <div className='flex items-center space-x-2 outline outline-[#cdd0d180] rounded-[20px] p-2 mt-3 bg-white'>
-                                            <div className='relative w-1/2 flex items-center'>
-                                                <svg
-                                                    width='24'
-                                                    height='24'
-                                                    viewBox='0 0 24 24'
-                                                    fill='none'
-                                                    xmlns='http://www.w3.org/2000/svg'
-                                                    data-id='IcFlightTakeOff'
-                                                >
-                                                    <path
-                                                        d='M3 21H21'
-                                                        stroke='#0194f3'
-                                                        stroke-width='1.5'
-                                                        stroke-linecap='round'
-                                                        stroke-linejoin='round'
-                                                    ></path>
-                                                    <path
-                                                        fill-rule='evenodd'
-                                                        clip-rule='evenodd'
-                                                        d='M12 9L15.1924 7.93585C17.317 7.22767 19.6563 7.95843 21 9.75L7.44513 14.0629C5.86627 14.5653 4.1791 13.6926 3.67674 12.1137C3.66772 12.0854 3.65912 12.0569 3.65094 12.0283L3 9.75L5.25 10.875L9 9.75L4.5 3H5.25L12 9Z'
-                                                        stroke='#0194f3'
-                                                        stroke-width='1.5'
-                                                        stroke-linecap='round'
-                                                        stroke-linejoin='round'
-                                                    ></path>
-                                                </svg>
-                                                <input
-                                                    type='text'
-                                                    value={departure}
-                                                    onChange={(e) => setDeparture(e.target.value)}
-                                                    onFocus={() => setShowDepartureOptions(true)}
-                                                    onBlur={() => setShowDepartureOptions(false)}
-                                                    placeholder='TP HCM(SGN)'
-                                                    className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
-                                                />
-                                                {showDepartureOptions && (
-                                                    <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%]'>
-                                                        <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
-                                                            Thành phố hoặc sân bay phổ biến
-                                                        </p>
-                                                        {airports.map((airport) => (
-                                                            <div
-                                                                key={airport.code}
-                                                                className={
-                                                                    departure === `${airport.code} - ${airport.name}`
-                                                                        ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
-                                                                        : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
-                                                                }
-                                                                onMouseDown={() => {
-                                                                    setDeparture(`${airport.code} - ${airport.name}`)
-                                                                    setShowDestinationOptions(false)
-                                                                }}
-                                                            >
-                                                                <svg
-                                                                    width='16'
-                                                                    height='16'
-                                                                    viewBox='0 0 16 16'
-                                                                    fill='none'
-                                                                    xmlns='http://www.w3.org/2000/svg'
-                                                                    data-id='IcProductDuotoneFlightFill16'
-                                                                >
-                                                                    <path
-                                                                        fill-rule='evenodd'
-                                                                        clip-rule='evenodd'
-                                                                        d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
-                                                                        fill='#687176'
-                                                                    ></path>
-                                                                </svg>
-                                                                {airport.name} ({airport.code}) - {airport.city}
+                                            {/* Input Điểm đi (Departure) */}
+                                            <Controller
+                                                name='departure'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <div className='relative w-1/2 flex items-center'>
+                                                        <svg
+                                                            width='24'
+                                                            height='24'
+                                                            viewBox='0 0 24 24'
+                                                            fill='none'
+                                                            xmlns='http://www.w3.org/2000/svg'
+                                                            data-id='IcFlightTakeOff'
+                                                        >
+                                                            <path
+                                                                d='M3 21H21'
+                                                                stroke='#0194f3'
+                                                                stroke-width='1.5'
+                                                                stroke-linecap='round'
+                                                                stroke-linejoin='round'
+                                                            ></path>
+                                                            <path
+                                                                fill-rule='evenodd'
+                                                                clip-rule='evenodd'
+                                                                d='M12 9L15.1924 7.93585C17.317 7.22767 19.6563 7.95843 21 9.75L7.44513 14.0629C5.86627 14.5653 4.1791 13.6926 3.67674 12.1137C3.66772 12.0854 3.65912 12.0569 3.65094 12.0283L3 9.75L5.25 10.875L9 9.75L4.5 3H5.25L12 9Z'
+                                                                stroke='#0194f3'
+                                                                stroke-width='1.5'
+                                                                stroke-linecap='round'
+                                                                stroke-linejoin='round'
+                                                            ></path>
+                                                        </svg>
+                                                        <input
+                                                            {...field} // Kết nối RHF (value, onChange, onBlur)
+                                                            type='text'
+                                                            onFocus={() => setShowDepartureOptions(true)}
+                                                            onBlur={() => setShowDepartureOptions(false)}
+                                                            placeholder='TP HCM(SGN)'
+                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
+                                                        />
+                                                        {showDepartureOptions && (
+                                                            <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%]'>
+                                                                <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
+                                                                    Thành phố hoặc sân bay phổ biến
+                                                                </p>
+                                                                {airports.map((airport) => (
+                                                                    <div
+                                                                        key={airport.airport_id}
+                                                                        className={
+                                                                            field.value ===
+                                                                            `${airport.airport_code} - ${airport.airport_name}`
+                                                                                ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
+                                                                                : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
+                                                                        }
+                                                                        // Dùng onMouseDown để sự kiện xảy ra trước onBlur
+                                                                        onMouseDown={() => {
+                                                                            setValue(
+                                                                                'departure',
+                                                                                `${airport.airport_code} - ${airport.airport_name}`
+                                                                            )
+                                                                            setShowDepartureOptions(false)
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            width='16'
+                                                                            height='16'
+                                                                            viewBox='0 0 16 16'
+                                                                            fill='none'
+                                                                            xmlns='http://www.w3.org/2000/svg'
+                                                                            data-id='IcProductDuotoneFlightFill16'
+                                                                        >
+                                                                            <path
+                                                                                fill-rule='evenodd'
+                                                                                clip-rule='evenodd'
+                                                                                d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
+                                                                                fill='#687176'
+                                                                            ></path>
+                                                                        </svg>
+                                                                        {airport.airport_name} ({airport.airport_code}) - {airport.city}
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
+                                            />
+
                                             <div className='w-[65px] h-[2px] bg-[#cdd0d1] rotate-90'></div>
+                                            {/* Nút Swap */}
                                             <button
-                                                onClick={(event) => swapLocations(event)}
+                                                onClick={swapLocations} // Gọi hàm helper
                                                 className='text-gray-500 hover:text-gray-700 outline-none rounded-[50%] border border-[#cdd0d1] w-[40px] h-[40px] flex justify-center items-center absolute left-[20.5%] z-10 bg-white'
                                             >
                                                 <img
@@ -414,132 +403,151 @@ export default function Header() {
                                                     className='w-6 h-6'
                                                 />
                                             </button>
-                                            <div className='relative w-1/2 flex items-center'>
-                                                <svg
-                                                    width='24'
-                                                    height='24'
-                                                    viewBox='0 0 24 24'
-                                                    fill='none'
-                                                    xmlns='http://www.w3.org/2000/svg'
-                                                    data-id='IcFlightLanding'
-                                                >
-                                                    <path
-                                                        d='M21 20.25C21.4142 20.25 21.75 20.5858 21.75 21C21.75 21.4142 21.4142 21.75 21 21.75H3C2.58579 21.75 2.25 21.4142 2.25 21C2.25 20.5858 2.58579 20.25 3 20.25H21ZM16.4014 16.668C16.6959 16.4277 17.1307 16.4451 17.4053 16.7197L17.7803 17.0947C18.0732 17.3876 18.0732 17.8624 17.7803 18.1553L17.4053 18.5303C17.1124 18.8232 16.6376 18.8232 16.3447 18.5303L15.9697 18.1553C15.6768 17.8624 15.6768 17.3876 15.9697 17.0947L16.3447 16.7197L16.4014 16.668ZM8.2041 2.25684C8.44224 2.29015 8.65274 2.43721 8.76562 2.6543L12.498 9.83398L17.4893 10.833L17.7842 10.9004C19.2444 11.281 20.476 12.2744 21.1553 13.6328L21.6709 14.665C21.7919 14.9074 21.773 15.1966 21.6211 15.4209C21.4691 15.6452 21.2075 15.7696 20.9375 15.7471L7.06445 14.5908C4.34342 14.3641 2.25 12.0898 2.25 9.35938V7.5L2.26074 7.37207C2.31113 7.08009 2.53189 6.84044 2.82812 6.77051C3.16655 6.69077 3.51539 6.85402 3.6709 7.16504L4.96387 9.75H8.08496L6.76465 3.14746C6.72058 2.92713 6.77747 2.69818 6.91992 2.52441C7.06238 2.35066 7.27531 2.25 7.5 2.25H8.09961L8.2041 2.25684ZM9.73535 10.3525C9.77942 10.5729 9.72253 10.8018 9.58008 10.9756C9.43762 11.1493 9.22469 11.25 9 11.25H4.5C4.40631 11.25 4.31595 11.2308 4.23145 11.1982C4.82345 12.2488 5.90865 12.99 7.18848 13.0967L19.7256 14.1406C19.2263 13.2544 18.3888 12.6089 17.4053 12.3525L17.1943 12.3037L11.8525 11.2354C11.6298 11.1907 11.4398 11.0472 11.335 10.8457L8.89551 6.15527L9.73535 10.3525Z'
-                                                        fill='#0194f3'
-                                                    ></path>
-                                                </svg>
-                                                <input
-                                                    type='text'
-                                                    value={destination}
-                                                    onChange={(e) => setDestination(e.target.value)}
-                                                    onFocus={() => setShowDestinationOptions(true)}
-                                                    onBlur={() => setShowDestinationOptions(false)}
-                                                    placeholder='Bangkok (BKK)'
-                                                    className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
-                                                />
-                                                {showDestinationOptions && (
-                                                    <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%] left-[-131.5%]'>
-                                                        <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
-                                                            Thành phố hoặc sân bay phổ biến
-                                                        </p>
-                                                        {airports.map((airport) => (
-                                                            <div
-                                                                key={airport.code}
-                                                                className={
-                                                                    destination === `${airport.code} - ${airport.name}`
-                                                                        ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
-                                                                        : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
-                                                                }
-                                                                onMouseDown={() => {
-                                                                    setDestination(`${airport.code} - ${airport.name}`)
-                                                                    setShowDestinationOptions(false)
-                                                                }}
-                                                            >
-                                                                <svg
-                                                                    width='16'
-                                                                    height='16'
-                                                                    viewBox='0 0 16 16'
-                                                                    fill='none'
-                                                                    xmlns='http://www.w3.org/2000/svg'
-                                                                    data-id='IcProductDuotoneFlightFill16'
-                                                                >
-                                                                    <path
-                                                                        fill-rule='evenodd'
-                                                                        clip-rule='evenodd'
-                                                                        d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
-                                                                        fill='#687176'
-                                                                    ></path>
-                                                                </svg>
-                                                                {airport.name} ({airport.code}) - {airport.city}
+
+                                            {/* Input Điểm đến (Destination) */}
+                                            <Controller
+                                                name='destination'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <div className='relative w-1/2 flex items-center'>
+                                                        <svg
+                                                            width='24'
+                                                            height='24'
+                                                            viewBox='0 0 24 24'
+                                                            fill='none'
+                                                            xmlns='http://www.w3.org/2000/svg'
+                                                            data-id='IcFlightLanding'
+                                                        >
+                                                            <path
+                                                                d='M21 20.25C21.4142 20.25 21.75 20.5858 21.75 21C21.75 21.4142 21.4142 21.75 21 21.75H3C2.58579 21.75 2.25 21.4142 2.25 21C2.25 20.5858 2.58579 20.25 3 20.25H21ZM16.4014 16.668C16.6959 16.4277 17.1307 16.4451 17.4053 16.7197L17.7803 17.0947C18.0732 17.3876 18.0732 17.8624 17.7803 18.1553L17.4053 18.5303C17.1124 18.8232 16.6376 18.8232 16.3447 18.5303L15.9697 18.1553C15.6768 17.8624 15.6768 17.3876 15.9697 17.0947L16.3447 16.7197L16.4014 16.668ZM8.2041 2.25684C8.44224 2.29015 8.65274 2.43721 8.76562 2.6543L12.498 9.83398L17.4893 10.833L17.7842 10.9004C19.2444 11.281 20.476 12.2744 21.1553 13.6328L21.6709 14.665C21.7919 14.9074 21.773 15.1966 21.6211 15.4209C21.4691 15.6452 21.2075 15.7696 20.9375 15.7471L7.06445 14.5908C4.34342 14.3641 2.25 12.0898 2.25 9.35938V7.5L2.26074 7.37207C2.31113 7.08009 2.53189 6.84044 2.82812 6.77051C3.16655 6.69077 3.51539 6.85402 3.6709 7.16504L4.96387 9.75H8.08496L6.76465 3.14746C6.72058 2.92713 6.77747 2.69818 6.91992 2.52441C7.06238 2.35066 7.27531 2.25 7.5 2.25H8.09961L8.2041 2.25684ZM9.73535 10.3525C9.77942 10.5729 9.72253 10.8018 9.58008 10.9756C9.43762 11.1493 9.22469 11.25 9 11.25H4.5C4.40631 11.25 4.31595 11.2308 4.23145 11.1982C4.82345 12.2488 5.90865 12.99 7.18848 13.0967L19.7256 14.1406C19.2263 13.2544 18.3888 12.6089 17.4053 12.3525L17.1943 12.3037L11.8525 11.2354C11.6298 11.1907 11.4398 11.0472 11.335 10.8457L8.89551 6.15527L9.73535 10.3525Z'
+                                                                fill='#0194f3'
+                                                            ></path>
+                                                        </svg>
+                                                        <input
+                                                            {...field} // Kết nối RHF
+                                                            type='text'
+                                                            onFocus={() => setShowDestinationOptions(true)}
+                                                            onBlur={() => setShowDestinationOptions(false)}
+                                                            placeholder='Bangkok (BKK)'
+                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
+                                                        />
+                                                        {showDestinationOptions && (
+                                                            <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%] left-[-131.5%]'>
+                                                                <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
+                                                                    Thành phố hoặc sân bay phổ biến
+                                                                </p>
+                                                                {airports.map((airport) => (
+                                                                    <div
+                                                                        key={airport.airport_code}
+                                                                        className={
+                                                                            field.value ===
+                                                                            `${airport.airport_code} - ${airport.airport_name}`
+                                                                                ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
+                                                                                : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
+                                                                        }
+                                                                        onMouseDown={() => {
+                                                                            setValue(
+                                                                                'destination',
+                                                                                `${airport.airport_code} - ${airport.airport_name}`
+                                                                            )
+                                                                            setShowDestinationOptions(false)
+                                                                        }}
+                                                                    >
+                                                                        <svg
+                                                                            width='16'
+                                                                            height='16'
+                                                                            viewBox='0 0 16 16'
+                                                                            fill='none'
+                                                                            xmlns='http://www.w3.org/2000/svg'
+                                                                            data-id='IcProductDuotoneFlightFill16'
+                                                                        >
+                                                                            <path
+                                                                                fill-rule='evenodd'
+                                                                                clip-rule='evenodd'
+                                                                                d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
+                                                                                fill='#687176'
+                                                                            ></path>
+                                                                        </svg>
+                                                                        {airport.airport_name} ({airport.airport_code}) - {airport.city}
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                                {/*  */}
+                                {/* Input Ngày
+                                 */}
                                 <div className='flex mt-[22px]'>
                                     <div className='w-[580px]'>
                                         <div className='flex items-center'>
                                             <div className='w-1/2'>
-                                                <p className='text-[16px] font-semibold'>Ngày khởi hành</p>
+                                                <p className='text-[16px] font-semibold text-white'>Ngày khởi hành</p>
                                             </div>
                                             <div className='flex items-center gap-2 w-1/2 pl-1'>
-                                                <label className='flex items-center cursor-pointer relative'>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={isRoundTrip}
-                                                        onChange={(e) => setIsRoundTrip(e.target.checked)}
-                                                        className='absolute opacity-0 w-0 h-0' // Ẩn checkbox gốc
-                                                    />
-                                                    <div
-                                                        className={
-                                                            isRoundTrip
-                                                                ? 'w-5 h-5 bg-[#0194f3] border-2 border-gray-300 rounded-md flex items-center justify-center mr-2 transition-all duration-200'
-                                                                : 'w-5 h-5 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center mr-2 transition-all duration-200'
-                                                        }
-                                                    >
-                                                        {/* Custom icon */}
-                                                        {isRoundTrip ? (
-                                                            <svg
-                                                                className='w-4 h-4 text-white ml-[2px]'
-                                                                fill='none'
-                                                                stroke='currentColor'
-                                                                viewBox='0 0 24 24'
+                                                {/* Checkbox Khứ hồi */}
+                                                <Controller
+                                                    name='isRoundTrip'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <label className='flex items-center cursor-pointer relative'>
+                                                            <input
+                                                                type='checkbox'
+                                                                checked={field.value}
+                                                                onChange={field.onChange}
+                                                                className='absolute opacity-0 w-0 h-0'
+                                                            />
+                                                            <div
+                                                                className={
+                                                                    field.value
+                                                                        ? 'w-5 h-5 bg-[#0194f3] border-2 border-gray-300 rounded-md flex items-center justify-center mr-2 transition-all duration-200'
+                                                                        : 'w-5 h-5 bg-white border-2 border-gray-300 rounded-md flex items-center justify-center mr-2 transition-all duration-200'
+                                                                }
                                                             >
-                                                                <path
-                                                                    strokeLinecap='round'
-                                                                    strokeLinejoin='round'
-                                                                    strokeWidth={2}
-                                                                    d='M5 13l4 4L19 7'
-                                                                />
-                                                            </svg>
-                                                        ) : (
-                                                            <svg
-                                                                className='w-4 h-4 text-[#918f8f] ml-[2px]'
-                                                                fill='none'
-                                                                stroke='currentColor'
-                                                                viewBox='0 0 24 24'
-                                                            >
-                                                                <path
-                                                                    strokeLinecap='round'
-                                                                    strokeLinejoin='round'
-                                                                    strokeWidth={2}
-                                                                    d='M5 13l4 4L19 7'
-                                                                />
-                                                            </svg>
-                                                        )}
-                                                    </div>
-                                                    <span className='text-[16px] font-semibold text-white'>
-                                                        Khứ hồi
-                                                    </span>
-                                                </label>
+                                                                {isRoundTrip ? (
+                                                                    <svg
+                                                                        className='w-4 h-4 text-white ml-[2px]'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M5 13l4 4L19 7'
+                                                                        />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg
+                                                                        className='w-4 h-4 text-[#918f8f] ml-[2px]'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M5 13l4 4L19 7'
+                                                                        />
+                                                                    </svg>
+                                                                )}
+                                                            </div>
+                                                            <span className='text-[16px] font-semibold text-white'>
+                                                                Khứ hồi
+                                                            </span>
+                                                        </label>
+                                                    )}
+                                                />
                                             </div>
                                         </div>
 
                                         <div className='flex items-center space-x-2 outline outline-[#cdd0d180] rounded-[20px] h-[55px] mt-3 relative bg-white'>
+                                            {/* DatePicker Ngày đi */}
                                             <div className='text-gray-900 rounded-[20px] flex items-center gap-2 w-1/2 p-2'>
                                                 <svg
                                                     width='24'
@@ -554,19 +562,27 @@ export default function Header() {
                                                         fill='#0194f3'
                                                     ></path>
                                                 </svg>
-                                                <DatePicker
-                                                    selected={startDate}
-                                                    onChange={(date) => setStartDate(date)}
-                                                    dateFormat='dd MMMM yyyy'
-                                                    locale={vi}
-                                                    className='border-none outline-none bg-transparent placeholder:text-black font-semibold placeholder:text-[16px] text-black text-[16px]'
-                                                    popperClassName='z-50'
-                                                    minDate={startDate || today} // Giới hạn ngày khứ hồi từ ngày khởi hành
-                                                    maxDate={maxDate} // Giới hạn ngày tối đa là 30 ngày sau
+                                                <Controller
+                                                    name='startDate'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <DatePicker
+                                                            selected={field.value}
+                                                            onChange={(date) => field.onChange(date)}
+                                                            dateFormat='dd MMMM yyyy'
+                                                            locale={vi}
+                                                            className='border-none outline-none bg-transparent placeholder:text-black font-semibold placeholder:text-[16px] text-black text-[16px]'
+                                                            popperClassName='z-50'
+                                                            minDate={today} // Giới hạn ngày
+                                                            maxDate={maxDate} // Giới hạn ngày
+                                                        />
+                                                    )}
                                                 />
                                             </div>
 
                                             <div className='w-[56px] h-[2px] bg-[#cdd0d1] rotate-90 absolute left-[44.5%]'></div>
+
+                                            {/* DatePicker Ngày về */}
                                             <div
                                                 className={
                                                     isRoundTrip
@@ -587,24 +603,33 @@ export default function Header() {
                                                         fill='#0194f3'
                                                     ></path>
                                                 </svg>
-                                                <DatePicker
-                                                    selected={endDate}
-                                                    onChange={(date) => setEndDate(date)}
-                                                    dateFormat='dd MMMM yyyy'
-                                                    locale={vi}
-                                                    className={cx(
-                                                        'border-none outline-none bg-transparent placeholder:text-black font-semibold placeholder:text-[16px] text-black text-[16px] w-full'
+                                                <Controller
+                                                    name='endDate'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <DatePicker
+                                                            selected={field.value}
+                                                            onChange={(date) => field.onChange(date)}
+                                                            dateFormat='dd MMMM yyyy'
+                                                            locale={vi}
+                                                            className={cx(
+                                                                'border-none outline-none bg-transparent placeholder:text-black font-semibold placeholder:text-[16px] text-black text-[16px] w-full'
+                                                            )}
+                                                            popperClassName='z-50'
+                                                            minDate={startDate || today} // Giới hạn ngày khứ hồi
+                                                            maxDate={maxDate} // Giới hạn ngày tối đa
+                                                            disabled={!isRoundTrip} // Vô hiệu hóa nếu không khứ hồi
+                                                        />
                                                     )}
-                                                    popperClassName='z-50'
-                                                    minDate={startDate || today} // Giới hạn ngày khứ hồi từ ngày khởi hành
-                                                    maxDate={maxDate} // Giới hạn ngày tối đa là 30 ngày sau
-                                                    disabled={!isRoundTrip} // Vô hiệu hóa nếu chưa chọn ngày khởi hành
                                                 />
                                             </div>
                                         </div>
+
+                                        {/* NÚT TÌM KIẾM */}
                                         <button
+                                            type='submit' // QUAN TRỌNG: Đổi thành type="submit"
                                             className='absolute right-1 top-[60%] w-[55px] h-[55px] outline outline-[#cdd0d180] rounded-[16px] bg-[#ff5e1f] cursor-pointer flex items-center justify-center text-center hover:bg-[#c94b1a] transtion duration-200 ease-in-out'
-                                            onClick={() => handleRedirect()}
+                                            // Xóa onClick khỏi nút này
                                         >
                                             <svg
                                                 xmlns='http://www.w3.org/2000/svg'
@@ -626,7 +651,8 @@ export default function Header() {
                             </div>
                         </form>
 
-                        {/*  */}
+                        {/* Phần còn lại của Giao diện
+                         */}
                         <div className='flex items-center gap-2 mt-3'>
                             <h3 className='text-[16px] font-semibold text-white'>Tìm kiếm</h3>
                             <div className='rounded-[6px] w-[280px] h-[30px] text-[15px] text-white font-semibold flex items-center justify-center gap-2 bg-[#ffffff40] cursor-pointer'>
@@ -663,7 +689,7 @@ export default function Header() {
                             </div>
                         </div>
 
-                        {/*  */}
+                        {/* Phần "Trusted by" */}
                         <div className='flex items-center rounded-md bg-white w-[378px] h-[48px] mx-auto mt-6 gap-4 p-2'>
                             <p className='text-[13px] font-semibold w-[20%] opacity-85 italic'>Trusted by</p>
                             <div className='flex items-start justify-between gap-3 w-[70%]'>

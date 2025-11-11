@@ -7,10 +7,11 @@ export const path = {
     login: '/login',
     logout: '/logout',
     forgotPassword: '/forgotPassword',
-    searchFlight: '/search_flight',
+    searchFlight: '/search',
     flightBooking: '/flightBooking',
     flightBookingDetail: '/flightBooking/detail',
     flightBookingPayment: '/flightBooking/payment',
+    paymentSuccess: '/payment/success',
     // productList: '/productList',
     // news: '/news',
     // introduce: '/introduce',
@@ -22,16 +23,22 @@ export const path = {
     // checkoutAddress: '/checkout/address',
     // checkoutPayment: '/checkout/payment',
     // checkoutThankYou: '/checkout/thankyou',
-    // account: '/account',
+    profile: '/profile',
     // accountOder: '/account/oder/:nameId',
-    changePassword: '/account/changepassword',
+    changePassword: '/changepassword',
     // updateProfile: '/account/updateprofile',
     // productSearch: '/productSearch',
 
     // Thêm trang quản lý admin
-    adminDashboard: '/admin',
-    adminProducts: '/admin/products',
-    adminOrders: '/admin/orders',
-    adminUsers: '/admin/users',
-    adminReports: '/admin/reports'
+
+    admin: '/admin',
+    adminDashboard: '/admin/dashboard',
+    adminAirport: '/admin/airport',
+    adminAirline: '/admin/airline',
+    adminAirplane: '/admin/airplane',
+    adminPassenger: '/admin/passenger',
+    adminContact: '/admin/contact',
+    adminPromotion: '/admin/promotion',
+    adminFlight: '/admin/flight',
+    adminBooking: '/admin/booking'
 }

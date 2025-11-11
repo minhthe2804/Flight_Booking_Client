@@ -12,6 +12,16 @@ import SearchFlight from './pages/SearchFlight'
 import FlightBooking from './pages/FlightBooking'
 import FlightBookingDetail from './pages/FlightBooking/pages/FlightBookingDetail'
 import FlightBookingPayment from './pages/FlightBooking/pages/FlightBookingPayment'
+import Admin from './pages/Admin'
+import Dashboard from './pages/Admin/pages/Dashboard'
+import Airport from './pages/Admin/pages/Airport'
+import AirPlane from './pages/Admin/pages/AirPlane'
+import Passenger from './pages/Admin/pages/Passenger'
+import Contact from './pages/Admin/pages/Contact'
+import PromotionAdmin from './pages/Admin/pages/Promotion'
+import PaymentSuccess from './pages/PaymentSuccess'
+import Profile from './pages/Profile/Profile'
+import ChangePassword from './pages/ChangePassword/ChangePassword'
 
 export default function useRouteElements() {
     const routeElements = useRoutes([
@@ -65,6 +75,22 @@ export default function useRouteElements() {
             element: <Register />
         },
         {
+            path: path.profile,
+            element: (
+                <MainLayout>
+                    <Profile />
+                </MainLayout>
+            )
+        },
+        {
+            path: path.changePassword,
+            element: (
+                <MainLayout>
+                    <ChangePassword />
+                </MainLayout>
+            )
+        },
+        {
             path: path.flightBooking,
             element: <FlightBooking />,
             children: [
@@ -83,6 +109,46 @@ export default function useRouteElements() {
                     ]
                 }
             ]
+        },
+        {
+            path: path.admin,
+            element: <Admin />,
+            children: [
+                {
+                    path: '',
+                    element: <Outlet />,
+                    children: [
+                        {
+                            path: path.adminDashboard,
+                            element: <Dashboard />
+                        },
+                        {
+                            path: path.adminAirport,
+                            element: <Airport />
+                        },
+                        {
+                            path: path.adminAirplane,
+                            element: <AirPlane />
+                        },
+                        {
+                            path: path.adminPassenger,
+                            element: <Passenger />
+                        },
+                        {
+                            path: path.adminContact,
+                            element: <Contact />
+                        },
+                        {
+                            path: path.adminPromotion,
+                            element: <PromotionAdmin />
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            path: path.paymentSuccess,
+            element: <PaymentSuccess />
         }
     ])
     return routeElements

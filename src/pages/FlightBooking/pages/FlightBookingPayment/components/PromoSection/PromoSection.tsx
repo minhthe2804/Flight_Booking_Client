@@ -1,146 +1,133 @@
-import { FC, useState } from 'react'
-import { TicketPercent, CircleX, CheckCircle } from 'lucide-react'
+// src/components/PromoSection/PromoSection.tsx
 
-// --- Type Definitions ---
-type Promotion = {
-    id: string
-    title: string
-    description: string
-    discount: string
-    iconColor: string
-}
+import  { useState } from 'react'
+import { toast } from 'react-toastify'
+import { Promotion } from '~/types/promotion' // 1. Import kiểu Promotion
 
-type PromoSectionProps = {
-    promotions: Promotion[]
+interface PromoSectionProps {
+    promotions: Promotion[] // 2. Sử dụng kiểu dữ liệu mới
+    isLoading: boolean // Thêm prop isLoading
     appliedPromoId: string | null
-    onApplyPromo: (promoId: string) => boolean
+    onApplyPromo: (promoCode: string) => boolean
     onRemovePromo: () => void
 }
 
-const PromoSection: FC<PromoSectionProps> = ({ promotions, appliedPromoId, onApplyPromo, onRemovePromo }) => {
-    const [inputValue, setInputValue] = useState<string>('')
-    const [error, setError] = useState<string | null>(null)
-    const [successMessage, setSuccessMessage] = useState<string | null>(null)
+const formatDiscount = (promo: Promotion): string => {
+    if (promo.discount_percentage > 0) {
+        return `Giảm ${promo.discount_percentage}%`
+    }
+    if (promo.discount_amount > 0) {
+        // Giả sử API lưu 50 = 50,000 VND, 100 = 100,000 VND
+        const amount = promo.discount_amount * 1000
+        return `Giảm ${amount.toLocaleString('vi-VN')} VND`
+    }
+    return promo.description // Fallback
+}
+
+export default function PromoSection({
+    promotions,
+    isLoading,
+    appliedPromoId,
+    onApplyPromo,
+    onRemovePromo
+}: PromoSectionProps) {
+    const [promoCode, setPromoCode] = useState('')
 
     const handleApply = () => {
-        setError(null)
-        setSuccessMessage(null)
-
-        if (!inputValue.trim()) {
-            setError('Vui lòng nhập mã giảm giá.')
+        if (!promoCode) {
+            toast.error('Vui lòng nhập mã khuyến mãi')
             return
         }
-
-        // Gọi hàm của cha để xử lý logic
-        const success = onApplyPromo(inputValue.trim().toUpperCase())
-
+        const success = onApplyPromo(promoCode)
         if (success) {
-            setSuccessMessage(`Áp dụng mã "${inputValue.trim().toUpperCase()}" thành công!`)
-            setInputValue('') // Xóa input sau khi thành công
-        } else {
-            setError(`Mã "${inputValue.trim().toUpperCase()}" không hợp lệ hoặc đã hết hạn.`)
+            toast.success('Áp dụng mã thành công!')
         }
+        // Không cần toast error ở đây nữa vì handleApplyPromo (cha) đã làm
     }
 
-    const handleSuggestionClick = (promoId: string) => {
-        setError(null)
-        setSuccessMessage(null)
-        onApplyPromo(promoId)
-    }
-
-    const handleRemoveClick = () => {
-        setError(null)
-        setSuccessMessage(null)
-        onRemovePromo()
-    }
+    // Lấy chi tiết của mã đã áp dụng
+    const appliedPromoDetails = promotions.find((p) => p.code.toUpperCase() === appliedPromoId?.toUpperCase())
 
     return (
-        <div className='mt-8 p-6 bg-gray-50/70 rounded-lg border border-gray-200'>
-            <h3 className='flex items-center text-md font-bold mb-4 text-gray-800'>
-                <TicketPercent className='w-5 h-5 mr-2 text-gray-500' />
-                Thêm mã giảm giá
-            </h3>
+        <div className='bg-white rounded-lg shadow-sm border border-gray-200 mt-5'>
+            <h2 className='text-lg font-semibold p-4 border-b border-gray-200'>Mã giảm giá & Khuyến mãi</h2>
 
-            {/* --- Phần Input và Nút bấm --- */}
-            <div className='flex mb-1'>
-                <input
-                    type='text'
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder='Nhập mã khuyến mãi chuyến bay'
-                    className='flex-grow p-2 border border-gray-300 text-black rounded-l-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100'
-                    // Vô hiệu hóa input nếu đã có mã được áp dụng
-                    disabled={!!appliedPromoId}
-                />
-                <button
-                    onClick={handleApply}
-                    className='bg-white text-blue-600 font-semibold px-4 py-2 border border-l-0 border-gray-300 rounded-r-md hover:bg-gray-100 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed'
-                    disabled={!!appliedPromoId}
-                >
-                    Áp dụng
-                </button>
-            </div>
+            {/* 3. Xử lý trạng thái Loading */}
+            {isLoading && (
+                <div className='p-4 space-y-2'>
+                    <div className='h-10 bg-gray-100 rounded animate-pulse'></div>
+                    <div className='h-16 bg-gray-100 rounded animate-pulse'></div>
+                </div>
+            )}
 
-            {/* --- Phần hiển thị thông báo Lỗi hoặc Thành công --- */}
-            <div className='h-5 mb-3 text-sm'>
-                {error && (
-                    <div className='flex items-center text-red-500'>
-                        <CircleX size={16} className='mr-1' />
-                        {error}
-                    </div>
-                )}
-                {successMessage && (
-                    <div className='flex items-center text-green-600'>
-                        <CheckCircle size={16} className='mr-1' />
-                        {successMessage}
-                    </div>
-                )}
-            </div>
-
-            {/* --- Phần danh sách khuyến mãi gợi ý --- */}
-            <div className='space-y-4'>
-                {promotions.map((promo) => {
-                    const isApplied = appliedPromoId === promo.id
-                    const isDisabled = !!appliedPromoId && !isApplied
-
-                    return (
-                        <div
-                            key={promo.id}
-                            className={`flex items-start p-3 rounded-lg ${isApplied ? 'bg-green-50 border border-green-200' : ''}`}
-                        >
-                            <TicketPercent
-                                className={`w-8 h-8 mr-3 mt-1 flex-shrink-0 ${isApplied ? 'text-green-500' : promo.iconColor}`}
-                            />
-                            <div className='flex-grow'>
-                                <p className='font-semibold text-gray-700'>{promo.title}</p>
-                                <p className='text-sm text-gray-500'>
-                                    {promo.description} <br />
-                                    <span className='font-semibold text-blue-600'>{promo.discount}</span>
-                                </p>
-                            </div>
-
-                            {isApplied ? (
-                                <button
-                                    onClick={handleRemoveClick}
-                                    className='text-sm text-red-600 font-semibold hover:underline self-center'
-                                >
-                                    Bỏ
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => handleSuggestionClick(promo.id)}
-                                    className='text-sm text-blue-600 font-semibold hover:underline self-center disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed'
-                                    disabled={isDisabled}
-                                >
-                                    Áp dụng
-                                </button>
-                            )}
+            {/* 4. Hiển thị khi đã áp dụng mã */}
+            {!isLoading && appliedPromoId && appliedPromoDetails ? (
+                <div className='p-4'>
+                    <p className='text-sm text-gray-600 mb-2'>Mã khuyến mãi đã áp dụng:</p>
+                    <div className='flex justify-between items-center bg-green-50 border border-green-200 p-3 rounded-md'>
+                        <div>
+                            <p className='font-semibold text-green-700'>{appliedPromoDetails.code}</p>
+                            <p className='text-sm text-green-600'>{formatDiscount(appliedPromoDetails)}</p>
                         </div>
-                    )
-                })}
-            </div>
+                        <button
+                            onClick={onRemovePromo}
+                            className='text-sm font-semibold text-red-500 hover:text-red-700'
+                        >
+                            Gỡ bỏ
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                /* 5. Hiển thị khi chưa áp dụng mã */
+                !isLoading &&
+                !appliedPromoId && (
+                    <div className='p-4'>
+                        <div className='flex space-x-2'>
+                            <input
+                                type='text'
+                                value={promoCode}
+                                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                placeholder='Nhập mã giảm giá'
+                                className='flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                            />
+                            <button
+                                onClick={handleApply}
+                                className='px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors'
+                            >
+                                Áp dụng
+                            </button>
+                        </div>
+
+                        {/* 6. Hiển thị danh sách khuyến mãi (nếu có) */}
+                        {promotions.length > 0 && (
+                            <div className='mt-4 space-y-2 max-h-40 overflow-y-auto pr-2'>
+                                <p className='text-sm font-semibold text-gray-700'>Khuyến mãi có sẵn:</p>
+                                {promotions.map((promo) => (
+                                    <div
+                                        key={promo.promotion_id}
+                                        className='flex justify-between items-center p-3 bg-gray-50 rounded border border-gray-200'
+                                    >
+                                        <div>
+                                            <p className='font-semibold text-blue-600'>{promo.code}</p>
+                                            <p className='text-sm text-gray-600'>{promo.description}</p>
+                                            <p className='text-sm font-bold text-gray-700'>{formatDiscount(promo)}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setPromoCode(promo.code) // Tự điền code vào ô
+                                                onApplyPromo(promo.code) // Và áp dụng ngay
+                                            }}
+                                            className='text-sm font-semibold text-blue-600 hover:underline'
+                                        >
+                                            Chọn
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )
+            )}
         </div>
     )
 }
-
-export default PromoSection

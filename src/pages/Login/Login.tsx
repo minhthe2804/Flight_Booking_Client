@@ -51,7 +51,7 @@ export default function Login() {
     const onSubmit = handleSubmit((data) => {
         loginMutation.mutate(data, {
             onSuccess: (data) => {
-                const newData = data.data as AuthResponse
+                const newData = data.data as unknown as AuthResponse
                 toast.success('Đăng nhập thành công', { autoClose: 3000 })
                 reset({ email: '', password: '' })
                 setIsAuthenticated(true)

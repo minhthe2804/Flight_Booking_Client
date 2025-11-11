@@ -1,16 +1,18 @@
+// src/components/ContactInformation/ContactInformation.tsx
+
+import React from 'react'
 import { Control, Controller, FieldErrors, UseFormRegister } from 'react-hook-form'
 import Input from '~/components/Input'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 
 import { ContactFormData } from '~/utils/rules'
-import './ContactInformation.css'
+import './ContactInformation.css' // Đảm bảo file này có style cho PhoneInput
 
 interface ContactFromProps {
-    // Chúng ta dùng Partial vì form cha có thể có nhiều trường hơn
-    errors: FieldErrors<Partial<ContactFormData>>
-    control: Control<any>
-    register: UseFormRegister<any>
+    errors?: FieldErrors<Partial<ContactFormData>>
+    control: Control<any> // Nên thay 'any' bằng kiểu BookingFormData
+    register: UseFormRegister<any> // Nên thay 'any' bằng kiểu BookingFormData
     setErrorEmail: React.Dispatch<React.SetStateAction<string>>
     errorEmail: string
 }
@@ -18,17 +20,22 @@ interface ContactFromProps {
 export default function ContactInformation({ control, errors, register, setErrorEmail, errorEmail }: ContactFromProps) {
     return (
         <div>
-            <div className='w-full rounded-md px-3 pt-3 pb-6 border-2 border-[#cdcdcd]'>
-                <h1 className='text-lg font-semibold text-black'>Thông tin liên hệ(nhận vé/phiếu thanh toán)</h1>
+            {/* Nên dùng style nhất quán với PassengerInFormation (mt-5, bg-white, v.v.) */}
+            <div className='w-full bg-white rounded-lg shadow-sm border border-gray-200 px-4 pt-3 pb-6'>
+                <h1 className='text-lg font-semibold text-gray-800 border-b border-gray-200 pb-3'>
+                    Thông tin liên hệ (nhận vé/phiếu thanh toán)
+                </h1>
                 <div className='mt-4'>
-                    <div className='w-full flex flex-wrap items-center gap-x-5 gap-y-2'>
-                        <div className='w-[399px]'>
+                    {/* Sử dụng grid để responsive tốt hơn */}
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-6'>
+                        <div className='w-full'>
                             <Input
-                                classNameError='text-red-500 text-[14px] mt-[2px] min-h-[20px]'
-                                classNameInput='mt-2 w-full outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]'
+                                classNameError='text-red-500 text-[14px] mt-1 min-h-[20px]'
+                                classNameInput='text-black mt-2 w-full outline-none border border-gray-300 rounded-[4px] py-2 px-3 focus:border-blue-500 transition duration-200'
                                 register={register}
-                                errorMessage={errors.lastnameContact?.message}
-                                name='lastnameContact'
+                                errorMessage={errors?.lastnameContact?.message}
+                                
+                                name='contact.lastnameContact'
                                 type='text'
                                 label='Họ (vd: Nguyen)'
                                 isFont
@@ -36,13 +43,13 @@ export default function ContactInformation({ control, errors, register, setError
                                 placeholder='như trên CCCD (không dấu)'
                             />
                         </div>
-                        <div className='w-[399px]'>
+                        <div className='w-full'>
                             <Input
-                                classNameError='text-red-500 text-[14px] mt-[2px] min-h-[20px]'
-                                classNameInput='mt-2 w-full outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]'
+                                classNameError='text-red-500 text-[14px] mt-1 min-h-[20px]'
+                                classNameInput='text-black mt-2 w-full outline-none border border-gray-300 rounded-[4px] py-2 px-3 focus:border-blue-500 transition duration-200'
                                 register={register}
-                                errorMessage={errors.nameContact?.message}
-                                name='nameContact'
+                                errorMessage={errors?.nameContact?.message}
+                                name='contact.nameContact'
                                 type='text'
                                 label='Tên Đệm & Tên (vd: Thi Ngoc Anh)'
                                 isFont
@@ -50,13 +57,13 @@ export default function ContactInformation({ control, errors, register, setError
                                 placeholder='như trên CCCD (không dấu)'
                             />
                         </div>
-                        <div className='w-[399px]'>
+                        <div className='w-full'>
                             <label className='text-gray-700 font-semibold text-[15px]'>
                                 Điện thoại di động
                                 <span className='text-red-500'>*</span>
                             </label>
                             <Controller
-                                name='phone'
+                                name='contact.phone'
                                 control={control}
                                 render={({ field }) => (
                                     <PhoneInput
@@ -68,15 +75,16 @@ export default function ContactInformation({ control, errors, register, setError
                                     />
                                 )}
                             />
-                            <p className='text-red-500 text-[14px] mt-[2px] min-h-[20px]'>{errors.phone?.message}</p>
+                            <p className='text-red-500 text-[14px] mt-[2px] min-h-[20px]'>{errors?.phone?.message}</p>
                         </div>
-                        <div className='w-[399px]'>
+                        <div className='w-full'>
                             <Input
-                                classNameError='text-red-500 text-[14px] mt-[2px] min-h-[20px]'
-                                classNameInput='mt-2 w-full outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]'
+                                classNameError='text-red-500 text-[14px] mt-1 min-h-[20px]'
+                                classNameInput='text-black mt-2 w-full outline-none border border-gray-300 rounded-[4px] py-2 px-3 focus:border-blue-500 transition duration-200'
                                 register={register}
-                                errorMessage={errors.email?.message}
-                                name='email'
+                                errorMessage={errors?.email?.message}
+                                // SỬA: Thêm prefix 'contact.'
+                                name='contact.email'
                                 type='text'
                                 label='Email'
                                 errorEmail={errorEmail}

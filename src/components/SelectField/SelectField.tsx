@@ -1,9 +1,13 @@
 import { Controller, Control, FieldValues, Path } from 'react-hook-form'
 
 // 2. Định nghĩa kiểu cho một lựa chọn trong dropdown
+
 type SelectOption = {
-    value: string
+    value: string | number
     label: string
+    country_id?: number
+    country_code?: string
+    country_name?: string
 }
 
 // 3. Định nghĩa kiểu cho props của SelectField sử dụng Generics
@@ -15,6 +19,8 @@ interface SelectFieldProps<T extends FieldValues> {
     isNationality?: boolean
     placeholder?: string
     options: SelectOption[]
+    disabled?: boolean
+    countryApi?: boolean | undefined
 }
 
 const SelectField = <T extends FieldValues>({
@@ -23,7 +29,9 @@ const SelectField = <T extends FieldValues>({
     label,
     isNationality,
     placeholder,
-    options = []
+    options = [],
+    countryApi,
+    ...rest
 }: SelectFieldProps<T>) => {
     return (
         // Controller sẽ quản lý state và validation cho component này
@@ -39,12 +47,16 @@ const SelectField = <T extends FieldValues>({
                     <select
                         id={name}
                         {...field} // Gắn các props của RHF (onChange, onBlur, value, ref)
+                        {...rest}
                         className={`mt-2 ${isNationality ? 'w-full' : 'w-[200px]'}  outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]`}
                     >
                         <option value=''>{placeholder || '--- Chọn ---'}</option>
                         {options.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
+                            <option
+                                key={countryApi ? option.country_id : option.value}
+                                value={countryApi ? option.country_code : option.value}
+                            >
+                                {countryApi ? option.country_name : option.label}
                             </option>
                         ))}
                     </select>

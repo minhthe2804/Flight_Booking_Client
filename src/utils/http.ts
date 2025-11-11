@@ -16,7 +16,8 @@ import config from '~/constants/config'
 import { URL_LOGIN, URL_REFRESH_TOKEN, URL_REGISTER } from '../apis/auth.api'
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from '..//types/utils.type'
-
+import { env } from 'process'
+const API_URL= import.meta.env.VITE_API_URL
 export class Http {
     instance: AxiosInstance
     private accessToken: string
@@ -27,7 +28,7 @@ export class Http {
         this.refreshToken = getRefreshTokenFromLS()
         this.refreshTokenRequest = null
         this.instance = axios.create({
-            baseURL: config.baseUrl,
+            baseURL: API_URL,
             timeout: 10000,
             headers: {
                 'Content-Type': 'application/json'
@@ -38,7 +39,7 @@ export class Http {
         this.instance.interceptors.request.use(
             (config) => {
                 if (this.accessToken && config.headers) {
-                    config.headers.authorization = this.accessToken
+                    config.headers.Authorization = `Bearer ${this.accessToken}`
                     return config
                 }
                 return config
@@ -103,7 +104,7 @@ export class Http {
                             // Nghĩa là chúng ta tiếp tục gọi lại request cũ vừa bị lỗi
                             return this.instance({
                                 ...config,
-                                headers: { ...config.headers, authorization: access_token }
+                                headers: { ...config.headers, Authorization: `Bearer ${access_token}` }
                             })
                         })
                     }

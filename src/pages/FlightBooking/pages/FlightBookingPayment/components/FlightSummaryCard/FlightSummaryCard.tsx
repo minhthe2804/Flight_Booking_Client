@@ -1,6 +1,6 @@
 // src/features/PaymentPage/FlightSummaryCard.tsx
 
-import React, { FC } from 'react'
+import { FC } from 'react'
 import { Plane, Users } from 'lucide-react'
 
 // --- ĐỊNH NGHĨA CÁC KIỂU DỮ LIỆU (TYPES) ---

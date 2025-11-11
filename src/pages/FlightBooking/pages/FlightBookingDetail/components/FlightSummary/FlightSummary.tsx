@@ -1,99 +1,258 @@
-import { faPlane, faPlaneUp } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useMemo } from 'react'
+import { Flight } from '~/types/searchFlight.type'
+import { PackageConfig } from '~/pages/SearchFlight/components/FlightServiceModal/FlightServiceModal'
+import { Passenger } from '~/types/passenger'
+import { BaggageOption, MealOption } from '~/types/flightServices'
+import { formatCurrencyVND } from '~/utils/utils'
+import { FlightInfoCard } from './components/FlightInfoCard/FlightInfoCard'
 
-export default function FlightSummary() {
-    return (
-        <div>
-            <div className='bg-white rounded-lg shadow border-2 border-gray-200 w-full flex flex-col max-h-[90vh]'>
-                {/* --- PHẦN NỘI DUNG CÓ THỂ CUỘN --- */}
-                <div className='flex-grow overflow-y-auto p-6'>
-                    <h2 className='text-xl font-semibold mb-4 text-gray-800'>Tóm tắt chuyến bay</h2>
+type PriceMap = {
+    [key: string]: number
+}
 
-                    {/* --- Khối Chuyến bay --- */}
-                    <div className='border-b border-gray-200 pb-4'>
-                        <div className='flex justify-between items-center mb-4'>
-                            <h3 className='font-semibold text-gray-700'>Chuyến bay</h3>
-                            <span className='bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center'>
-                                ✈️ Bay thẳng
-                            </span>
-                        </div>
+interface FlightSummaryProps {
+    departureFlight: Flight | null
+    returnFlight: Flight | null
+    selectedPackage: PackageConfig
+    passengers: Passenger[]
+    passengerCounts: {
+        adults: number
+        children: number
+        infants: number
+        total: number
+    }
+    baggageOptions: BaggageOption[]
+    mealOptions: MealOption[]
+    returnBaggageOptions: BaggageOption[]
+    returnMealOptions: MealOption[]
+    isLoadingServices: boolean
+}
 
-                        <div className='flex items-center justify-between mb-4'>
-                            <div className='flex flex-col justify-center items-center'>
-                                <p className='font-bold text-lg text-gray-900'>Hà Nội</p>
-                                <p className='text-sm text-gray-500 font-semibold'>Th 6, 24 thg 1</p>
-                                <p className='text-sm text-gray-500 font-semibold'>2025 04:40</p>
-                            </div>
-                            <div className='text-center text-gray-500 px-2'>
-                                <p className='text-xs'>1h 0m</p>
-                                <div className='relative my-1 w-16'>
-                                    <hr className='border-t border-gray-300' />
-                                    <FontAwesomeIcon
-                                        icon={faPlane}
-                                        className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-500 bg-white px-1'
-                                    />
-                                </div>
-                            </div>
-                            <div className='flex flex-col justify-center items-center'>
-                                <p className='font-bold text-lg text-gray-900'>TP. Hồ Chí Minh</p>
-                                <p className='text-sm text-gray-500 font-semibold'>Th 6, 24 thg 1</p>
-                                <p className='text-sm text-gray-500 font-semibold'>2025 05:40</p>
-                            </div>
-                        </div>
+// --- SỬA: Hằng số giá vé EM BÉ ---
+const INFANT_TICKET_PRICE = 400000 // 400,000 VND
 
-                        <div className='bg-slate-100 p-4'>
-                            <div className='text-sm text-gray-600 flex justify-center'>
-                                <div className='flex items-center gap-2'>
-                                    <FontAwesomeIcon icon={faPlaneUp} className='text-sm text-blue-500' />
-                                    <div className='flex items-center gap-2'>
-                                        <b> Vietjet Air</b>
-                                        <p className=''>|</p>
-                                        <p className='font-medium'>VJ00000</p>
-                                        <p>|</p>
-                                    </div>
-                                    <div className='font-semibold bg-slate-500 text-white rounded-[6px] px-1 py-0.5 text-xs w-[36px] flex justify-center items-center'>
-                                        ECO
-                                    </div>
-                                </div>
-                            </div>
+export default function FlightSummary({
+    departureFlight,
+    returnFlight,
+    selectedPackage,
+    passengers,
+    passengerCounts,
+    baggageOptions,
+    mealOptions,
+    returnBaggageOptions,
+    returnMealOptions,
+    isLoadingServices
+}: FlightSummaryProps) {
+    // --- Map Tra Cứu Giá (Giữ nguyên) ---
+    const depBaggageMap = useMemo(() => {
+        return baggageOptions.reduce(
+            (acc: PriceMap, opt) => {
+                acc[`baggage_${opt.baggage_service_id}`] = parseFloat(opt.price)
+                return acc
+            },
+            { baggage_0: 0 } as PriceMap
+        )
+    }, [baggageOptions])
 
-                            <div className='flex justify-between text-sm mt-5 px-4'>
-                                <div className='flex flex-col items-center justify-center'>
-                                    <p className=' text-gray-500 font-medium'>Cất cánh</p>
-                                    <p className='text-gray-800 font-bold text-base'>04:40</p>
-                                </div>
-                                <div className='flex flex-col items-center justify-center'>
-                                    <p className=' text-gray-500 font-medium'>Hạ cánh</p>
-                                    <p className='text-gray-800 font-bold text-base'>05:40</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    const retBaggageMap = useMemo(() => {
+        return returnBaggageOptions.reduce(
+            (acc: PriceMap, opt) => {
+                acc[`baggage_${opt.baggage_service_id}`] = parseFloat(opt.price)
+                return acc
+            },
+            { baggage_0: 0 } as PriceMap
+        )
+    }, [returnBaggageOptions])
 
-                    {/* --- Khối Giá gói --- */}
-                    <div className='flex justify-between items-center mt-4'>
-                        <span className='font-semibold text-gray-700'>Giá gói:</span>
-                        <div>
-                            <span className='bg-blue-100 text-blue-700 font-semibold px-3 py-2 rounded-md text-sm'>
-                                Economy Class
-                            </span>
-                            <span className='ml-4 font-bold text-lg text-gray-900'>
-                                2.500.000 <span className='text-sm align-top'>₫</span>
-                            </span>
-                        </div>
-                    </div>
+    const depMealMap = useMemo(() => {
+        return mealOptions.reduce((acc: PriceMap, opt) => {
+            acc[`meal_${opt.meal_service_id}`] = parseFloat(opt.price)
+            return acc
+        }, {} as PriceMap)
+    }, [mealOptions])
+
+    const retMealMap = useMemo(() => {
+        return returnMealOptions.reduce((acc: PriceMap, opt) => {
+            acc[`meal_${opt.meal_service_id}`] = parseFloat(opt.price)
+            return acc
+        }, {} as PriceMap)
+    }, [returnMealOptions])
+
+    const {
+        adultPrice,
+        childPrice,
+        infantPrice,
+        depBaggagePrice,
+        retBaggagePrice,
+        depMealPrice,
+        retMealPrice,
+        totalPrice
+    } = useMemo(() => {
+        if (!selectedPackage)
+            return {
+                basePrice: 0,
+                adultPrice: 0,
+                childPrice: 0,
+                infantPrice: 0,
+                depBaggagePrice: 0,
+                retBaggagePrice: 0,
+                depMealPrice: 0,
+                retMealPrice: 0,
+                totalPrice: 0
+            }
+
+            console.log(selectedPackage)
+        // 1. Tính giá vé
+        // Giá người lớn = SL Người lớn * Giá Gói
+        const adultPrice = passengerCounts.adults * (selectedPackage.pricePerPassenger as number)
+        // Giá trẻ em = SL Trẻ em * Giá Gói
+        const childPrice = passengerCounts.children * (selectedPackage.pricePerPassenger as number)
+        // Giá em bé = SL Em bé * Giá cố định
+        const infantPrice = passengerCounts.infants * INFANT_TICKET_PRICE
+
+        const basePrice = returnFlight ? (adultPrice + childPrice + infantPrice) * 2 : adultPrice + childPrice + infantPrice // Tổng giá vé cơ sở
+
+        // 2. Tính giá dịch vụ (Nhân 1000)
+        let depBaggagePrice = 0
+        passengers.forEach((p) => {
+            depBaggagePrice += depBaggageMap[p.departureBaggageId] || 0
+        })
+        let retBaggagePrice = 0
+        passengers.forEach((p) => {
+            retBaggagePrice += retBaggageMap[p.returnBaggageId] || 0
+        })
+        let depMealPrice = 0
+        passengers.forEach((p) => {
+            Object.keys(p.departureMeals).forEach((key) => {
+                depMealPrice += (depMealMap[key] || 0) * (p.departureMeals[key] || 0)
+            })
+        })
+        let retMealPrice = 0
+        passengers.forEach((p) => {
+            Object.keys(p.returnMeals).forEach((key) => {
+                retMealPrice += (retMealMap[key] || 0) * (p.returnMeals[key] || 0)
+            })
+        })
+
+        const totalPrice = basePrice + depBaggagePrice + retBaggagePrice + depMealPrice + retMealPrice
+
+        return {
+            basePrice,
+            adultPrice,
+            childPrice,
+            infantPrice,
+            depBaggagePrice,
+            retBaggagePrice,
+            depMealPrice,
+            retMealPrice,
+            totalPrice
+        }
+    }, [selectedPackage, passengers, passengerCounts, depBaggageMap, retBaggageMap, depMealMap, retMealMap])
+
+    // Xử lý loading
+    if (!departureFlight || !selectedPackage) {
+        return (
+            <div className='col-span-4 sticky top-5'>
+                <div className='bg-white rounded-lg shadow-sm border border-gray-200 p-4'>
+                    <div className='h-24 bg-gray-100 rounded animate-pulse'></div>
+                    <hr className='my-4' />
+                    <div className='h-16 bg-gray-100 rounded animate-pulse'></div>
                 </div>
             </div>
-            <div className='p-4 border-2 border-gray-200 bg-white rounded-md mt-4 shadow'>
-                <h3 className=' text-gray-500 text-sm font-medium'>Chi tiết số lượng hành khách:</h3>
-                <div className='flex justify-between text-gray-700 text-sm'>
-                    <span className='text-base font-semibold'>Người lớn: 3</span>
+        )
+    }
+
+    return (
+        <div className='col-span-4 sticky top-5'>
+            <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
+                {/* === Phần Chuyến bay === */}
+                <div className='p-4 space-y-4'>
+                    <FlightInfoCard flight={departureFlight} title='Chuyến đi' />
+                    {returnFlight && (
+                        <>
+                            <hr className='my-4 border-t border-gray-200' />
+                            <FlightInfoCard flight={returnFlight} title='Chuyến về' />
+                        </>
+                    )}
                 </div>
-                <div className='flex justify-between items-center mt-2 pt-2 border-t border-gray-200 w-full'>
-                    <span className='font-semibold text-gray-800'>Tổng tiền cho 3 hành khách:</span>
-                    <span className='font-semibold text-xl text-orange-500'>
-                        7.500.000 <span className='text-base align-top'>₫</span>
-                    </span>
+
+                <hr className='border-t border-gray-200' />
+
+                {/* === Phần Giá (SỬA LẠI HIỂN THỊ) === */}
+                <div className='p-4'>
+                    <h3 className='text-md font-semibold text-gray-800 mb-3'>Tóm tắt giá</h3>
+
+                    {isLoadingServices && (
+                        <div className='space-y-2 animate-pulse'>
+                            <div className='h-4 bg-gray-200 rounded w-full'></div>
+                            <div className='h-4 bg-gray-200 rounded w-2/3'></div>
+                            <div className='h-4 bg-gray-200 rounded w-1/2'></div>
+                        </div>
+                    )}
+
+                    {!isLoadingServices && (
+                        <div className='space-y-2 text-sm text-gray-600'>
+                            {/* Giá vé người lớn */}
+                            <div className='flex justify-between'>
+                                <span>
+                                    Vé {selectedPackage.package_name} ({passengerCounts.adults} x Người lớn)
+                                </span>
+                                <span className='font-medium'>{formatCurrencyVND(adultPrice)}</span>
+                            </div>
+
+                            {/* Giá vé trẻ em */}
+                            {passengerCounts.children > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>
+                                        Vé {selectedPackage.package_name} ({passengerCounts.children} x Trẻ em)
+                                    </span>
+                                    <span className='font-medium'>{formatCurrencyVND(childPrice)}</span>
+                                </div>
+                            )}
+
+                            {/* Giá vé em bé */}
+                            {passengerCounts.infants > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>Vé Em bé ({passengerCounts.infants} x Em bé)</span>
+                                    <span className='font-medium'>{formatCurrencyVND(infantPrice)}</span>
+                                </div>
+                            )}
+
+                            {/* Dịch vụ */}
+                            {depBaggagePrice > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>Hành lý (Chuyến đi)</span>
+                                    <span className='font-medium'>+{formatCurrencyVND(depBaggagePrice)}</span>
+                                </div>
+                            )}
+                            {retBaggagePrice > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>Hành lý (Chuyến về)</span>
+                                    <span className='font-medium'>+{formatCurrencyVND(retBaggagePrice)}</span>
+                                </div>
+                            )}
+                            {depMealPrice > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>Suất ăn (Chuyến đi)</span>
+                                    <span className='font-medium'>+{formatCurrencyVND(depMealPrice)}</span>
+                                </div>
+                            )}
+                            {retMealPrice > 0 && (
+                                <div className='flex justify-between'>
+                                    <span>Suất ăn (Chuyến về)</span>
+                                    <span className='font-medium'>+{formatCurrencyVND(retMealPrice)}</span>
+                                </div>
+                            )}
+
+                            <hr className='pt-2 my-2 border-t border-dashed' />
+
+                            {/* Tổng cộng */}
+                            <div className='flex justify-between items-center text-lg font-bold text-gray-900'>
+                                <span>Tổng cộng</span>
+                                <span className='text-orange-600'>{formatCurrencyVND(totalPrice)}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
