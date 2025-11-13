@@ -1,5 +1,5 @@
 import { FunnelIcon } from 'lucide-react'
-import { ContactFilter } from '../../Contact'
+import { ContactFilter } from '~/types/contact.type' // Import kiểu Filter
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faRotate } from '@fortawesome/free-solid-svg-icons'
 
@@ -13,77 +13,45 @@ interface ContactFilterCardProps {
 export default function ContactFilterCard({
     filters,
     onFilterChange,
-    onFilterReset,
-    onFilterSubmit
+    onFilterSubmit,
+    onFilterReset
 }: ContactFilterCardProps) {
     return (
         <div className='bg-white p-6 rounded-lg shadow-md h-fit'>
             <h2 className='flex items-center text-lg font-semibold mb-5 text-gray-800'>
                 <FunnelIcon className='h-5 w-5 mr-2 text-gray-500' />
-                Bộ lọc tìm kiếm
+                Bộ lọc Liên hệ
             </h2>
 
             <form onSubmit={onFilterSubmit}>
                 <div className='space-y-4'>
-                    {/* Mã người liên hệ */}
+                    {/* Tên */}
                     <div>
-                        <label htmlFor='filter_id' className='block text-sm font-medium text-gray-700'>
-                            Mã người liên hệ
+                        <label htmlFor='filter_first_name' className='block text-sm font-medium text-gray-700'>
+                            Tên
                         </label>
                         <input
                             type='text'
-                            name='id'
-                            id='filter_id'
-                            placeholder='Nhập mã người liên hệ...'
-                            value={filters.id}
+                            name='first_name'
+                            id='filter_first_name'
+                            placeholder='VD: An'
+                            value={filters.first_name || ''}
                             onChange={onFilterChange}
                             className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         />
                     </div>
 
-                    {/* Họ và chữ lót */}
+                    {/* Họ */}
                     <div>
-                        <label htmlFor='filter_lastName' className='block text-sm font-medium text-gray-700'>
-                            Họ và chữ lót
+                        <label htmlFor='filter_last_name' className='block text-sm font-medium text-gray-700'>
+                            Họ
                         </label>
                         <input
                             type='text'
-                            name='lastName'
-                            id='filter_lastName'
-                            placeholder='Nhập họ và chữ lót...'
-                            value={filters.lastName}
-                            onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
-                        />
-                    </div>
-
-                    {/* Tên người liên hệ */}
-                    <div>
-                        <label htmlFor='filter_firstName' className='block text-sm font-medium text-gray-700'>
-                            Tên người liên hệ
-                        </label>
-                        <input
-                            type='text'
-                            name='firstName'
-                            id='filter_firstName'
-                            placeholder='Nhập tên...'
-                            value={filters.firstName}
-                            onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
-                        />
-                    </div>
-
-                    {/* Số điện thoại */}
-                    <div>
-                        <label htmlFor='filter_phone' className='block text-sm font-medium text-gray-700'>
-                            Số điện thoại
-                        </label>
-                        <input
-                            type='tel'
-                            name='phone'
-                            id='filter_phone'
-                            placeholder='Nhập số điện thoại...'
-                            value={filters.phone}
+                            name='last_name'
+                            id='filter_last_name'
+                            placeholder='VD: Nguyen'
+                            value={filters.last_name || ''}
                             onChange={onFilterChange}
                             className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         />
@@ -95,49 +63,30 @@ export default function ContactFilterCard({
                             Email
                         </label>
                         <input
-                            type='email'
+                            type='text'
                             name='email'
                             id='filter_email'
-                            placeholder='Nhập email...'
-                            value={filters.email}
+                            placeholder='VD: example@mail.com'
+                            value={filters.email || ''}
                             onChange={onFilterChange}
                             className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         />
                     </div>
 
-                    {/* Sắp xếp theo */}
+                    {/* Điện thoại */}
                     <div>
-                        <label htmlFor='filter_sort' className='block text-sm font-medium text-gray-700'>
-                            Sắp xếp theo
+                        <label htmlFor='filter_phone' className='block text-sm font-medium text-gray-700'>
+                            Số điện thoại
                         </label>
-                        <select
-                            name='sortBy'
-                            id='filter_sort'
-                            value={filters.sortBy}
+                        <input
+                            type='text'
+                            name='phone'
+                            id='filter_phone'
+                            placeholder='VD: 090...'
+                            value={filters.phone || ''}
                             onChange={onFilterChange}
                             className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
-                        >
-                            <option value='id'>Mã người liên hệ</option>
-                            <option value='lastName'>Họ và chữ lót</option>
-                            <option value='firstName'>Tên</option>
-                        </select>
-                    </div>
-
-                    {/* Thứ tự */}
-                    <div>
-                        <label htmlFor='filter_order' className='block text-sm font-medium text-gray-700'>
-                            Thứ tự
-                        </label>
-                        <select
-                            name='order'
-                            id='filter_order'
-                            value={filters.order}
-                            onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
-                        >
-                            <option value='asc'>Tăng dần</option>
-                            <option value='desc'>Giảm dần</option>
-                        </select>
+                        />
                     </div>
                 </div>
 
@@ -148,8 +97,9 @@ export default function ContactFilterCard({
                         className='flex w-full items-center justify-center gap-1 rounded-md border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                     >
                         <FontAwesomeIcon icon={faMagnifyingGlass} className='mr-2 text-sm' />
-                        Tìm kiếm Tìm kiếm
+                        Tìm kiếm
                     </button>
+
                     <button
                         type='button'
                         onClick={onFilterReset}

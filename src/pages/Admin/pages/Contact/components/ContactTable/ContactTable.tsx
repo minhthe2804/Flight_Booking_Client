@@ -1,14 +1,44 @@
+import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Contact } from '../../Contact'
+import { Contact } from '~/apis/contact.api' // Import kiểu Contact
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
+import { faTrash, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 
 interface ContactTableProps {
     contacts: Contact[]
+    isLoading: boolean
     onEdit: (contact: Contact) => void
     onDelete: (id: number) => void
 }
 
-export default function ContactTable({ contacts, onEdit, onDelete }: ContactTableProps) {
+// Component Skeleton Bảng
+const TableRowSkeleton: React.FC = () => (
+    <tr className='animate-pulse'>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-1/4'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-full'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-3/4'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-3/4'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-1/2'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-4 bg-gray-200 rounded w-1/2'></div>
+        </td>
+        <td className='px-6 py-4 whitespace-nowrap'>
+            <div className='h-8 bg-gray-200 rounded w-full'></div>
+        </td>
+    </tr>
+)
+
+export default function ContactTable({ contacts, isLoading, onEdit, onDelete }: ContactTableProps) {
     return (
         <div className='bg-white rounded-lg shadow-md overflow-hidden mt-6'>
             <div className='overflow-x-auto'>
@@ -19,25 +49,13 @@ export default function ContactTable({ contacts, onEdit, onDelete }: ContactTabl
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
                             >
-                                Mã người liên hệ
+                                ID
                             </th>
                             <th
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
                             >
-                                Họ và tên đệm
-                            </th>
-                            <th
-                                scope='col'
-                                className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
-                            >
-                                Tên
-                            </th>
-                            <th
-                                scope='col'
-                                className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
-                            >
-                                Số điện thoại
+                                Họ và Tên
                             </th>
                             <th
                                 scope='col'
@@ -49,37 +67,56 @@ export default function ContactTable({ contacts, onEdit, onDelete }: ContactTabl
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
                             >
+                                Điện thoại
+                            </th>
+
+                            <th
+                                scope='col'
+                                className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
+                            >
                                 Hành động
                             </th>
                         </tr>
                     </thead>
                     <tbody className='bg-white divide-y divide-gray-200'>
-                        {contacts.length > 0 ? (
+                        {isLoading ? (
+                            Array(5)
+                                .fill(0)
+                                .map((_, idx) => <TableRowSkeleton key={idx} />)
+                        ) : contacts.length > 0 ? (
                             contacts.map((contact) => (
-                                <tr key={contact.id} className='hover:bg-gray-50 transition-colors duration-150'>
+                                <tr
+                                    key={contact.contact_id}
+                                    className='hover:bg-gray-50 transition-colors duration-150'
+                                >
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>
-                                        {contact.id}
+                                        {contact.contact_id}
+                                    </td>
+                                    <td className='px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600'>
+                                        {contact.last_name} {contact.middle_name} {contact.first_name}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {contact.lastName}
-                                    </td>
-                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {contact.firstName}
+                                        {contact.email}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {contact.phone}
                                     </td>
-                                    <td className='px-6 py-4 whitespace-nowTên sân bayrap text-sm text-gray-700'>
-                                        {contact.email}
-                                    </td>
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                                         <div className='flex items-center space-x-3'>
                                             <button
                                                 title='Sửa'
-                                                className='border border-green-600 rounded-md text-green-600 hover:text-green-800 transition-colors duration-150 p-2 bg-white'
+                                                className='border border-yellow-600 rounded-md text-yellow-600 hover:bg-yellow-50 transition-colors duration-150 p-2'
                                                 onClick={() => onEdit(contact)}
                                             >
-                                                <FontAwesomeIcon icon={faPenToSquare} className='h-5 w-5' />
+                                                <FontAwesomeIcon icon={faPenToSquare} className='h-4 w-4' />
+                                            </button>
+                                            <button
+                                                title='Xóa'
+                                                className='border border-red-600 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150 p-2'
+                                                onClick={() => onDelete(contact.contact_id)}
+                                            >
+                                                <FontAwesomeIcon icon={faTrash} className='h-4 w-4' />
                                             </button>
                                         </div>
                                     </td>
@@ -87,8 +124,8 @@ export default function ContactTable({ contacts, onEdit, onDelete }: ContactTabl
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={6} className='px-6 py-10 text-center text-sm text-gray-500'>
-                                    Không tìm thấy người liên hệ nào phù hợp.
+                                <td colSpan={7} className='px-6 py-10 text-center text-sm text-gray-500'>
+                                    Không tìm thấy liên hệ nào phù hợp.
                                 </td>
                             </tr>
                         )}

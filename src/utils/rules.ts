@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 import { isValidPhoneNumber } from 'react-phone-number-input'
-import { PromotionType } from '~/pages/Admin/pages/Promotion/Promotion'
+import { PromotionType } from '~/types/promotion'
 
 const handleConfirmPasswordYup = (refString: string) => {
     return yup
@@ -372,6 +372,69 @@ export const changePasswordSchema = yup.object({
         .oneOf([yup.ref('new_password')], 'Mật khẩu nhập lại không khớp') // Quan trọng
 })
 
+export const contactAdminSchema = yup.object({
+    contact_id: yup.number().defined().default(0),
+    first_name: yup.string().required('Tên là bắt buộc'),
+    middle_name: yup.string().nullable().defined().default(null),
+    last_name: yup.string().required('Họ là bắt buộc'),
+    phone: yup
+        .string()
+        .required('Số điện thoại là bắt buộc')
+        .matches(/^(?:\+84|0)\d{9}$/, 'Số điện thoại không hợp lệ (Bắt đầu +84 hoặc 0, đủ 10 số)'),
+    email: yup.string().required('Email là bắt buộc').email('Email không hợp lệ'),
+    citizen_id: yup
+        .string()
+        .nullable()
+        .defined()
+        .test('citizen_id-match', 'CCCD phải đúng 12 chữ số (nếu có)', (value) => {
+            if (!value) return true
+            return /^[0-9]{12}$/.test(value)
+        }),
+
+    is_primary: yup.boolean().required()
+})
+
+export const promotionAdminSchema = yup.object({
+    promotion_id: yup.number().required(),
+    promotion_code: yup.string().required('Mã code là bắt buộc').uppercase('Mã code phải viết hoa'),
+    description: yup.string().required('Mô tả là bắt buộc'),
+
+    discount_type: yup
+        .string()
+        .oneOf(['percentage', 'fixed_amount'], 'Loại giảm giá không hợp lệ')
+        .required('Loại giảm giá là bắt buộc'),
+
+    discount_value: yup
+        .number()
+        .min(0, 'Giá trị phải lớn hơn 0')
+        .required('Giá trị giảm là bắt buộc')
+        .typeError('Giá trị phải là số'),
+
+    min_purchase: yup
+        .number()
+        .min(0, 'Giá trị phải lớn hơn 0')
+        .required('Giá trị tối thiểu là bắt buộc')
+        .typeError('Giá trị phải là số'),
+
+    start_date: yup.string().required('Ngày bắt đầu là bắt buộc'),
+    end_date: yup
+        .string()
+        .required('Ngày kết thúc là bắt buộc')
+        .test('is-after-start', 'Ngày kết thúc phải sau ngày bắt đầu', function (value) {
+            const { start_date } = this.parent
+            if (!start_date || !value) return true // Bỏ qua nếu 1 trong 2 rỗng
+            return new Date(value) >= new Date(start_date)
+        }),
+
+    is_active: yup.boolean().required(),
+
+    usage_limit: yup
+        .number()
+        .min(1, 'Giới hạn phải lớn hơn 0')
+        .required('Giới hạn sử dụng là bắt buộc')
+        .typeError('Giới hạn phải là số')
+})
+
 export type Schema = yup.InferType<typeof schema>
 export type UserSchema = yup.InferType<typeof userSchema>
 export type PassportFormData = yup.InferType<typeof passportSchema>
@@ -385,3 +448,5 @@ export type promotionFormData = yup.InferType<typeof promotionSchema>
 export type SearchFlightForm = yup.InferType<typeof flightSearchSchema>
 export type ProfileSchema = yup.InferType<typeof profileSchema>
 export type ChangePasswordSchema = yup.InferType<typeof changePasswordSchema>
+export type ContactAdminSchema = yup.InferType<typeof contactAdminSchema>
+export type PromotionAdminSchema = yup.InferType<typeof promotionAdminSchema>

@@ -1,203 +1,190 @@
-import { useMemo, useState } from 'react'
-import PromotionForm from './components/PromotionForm'
+import React, { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
-import PromotionTable from './components/PromotionTable'
+import { AxiosError } from 'axios'
+import { useNavigate, createSearchParams } from 'react-router-dom'
+import { omitBy, isNil } from 'lodash'
+
+// Import các components con
+
+import Paginate from '~/components/Pagination'
+
+// Import API và Kiểu
+import { promotionApi, Promotion, PromotionFormData, PromotionListResponse } from '~/apis/promotion.api'
+
+import { path } from '~/constants/path' // Giả sử bạn có path.admin_promotions
+import useFlightQueryConfig from '~/hooks/useSearchFlightQueryConfig'
+import { PromotionFilter } from '~/types/promotion'
 import PromotionFilterCard from './components/PromotionFilterCard'
+import PromotionForm from './components/PromotionForm'
+import PromotionTable from './components/PromotionTable'
 
-export type PromotionType = 'Phần trăm' | 'Trực tiếp'
+// --- Component Chính ---
+export default function AdminPromotionPage() {
+    const queryClient = useQueryClient()
+    const navigate = useNavigate()
 
-export interface Promotion {
-    id: string // Mã khuyến mãi (e.g., UuDaiT10)
-    name: string // Tên khuyến mãi
-    type: PromotionType | '' // Dùng "" làm giá trị rỗng
-    value: number // Giá trị
-    startDate: string // Ngày bắt đầu (YYYY-MM-DD)
-    endDate: string // Ngày kết thúc (YYYY-MM-DD)
-    description: string
-}
-
-// Kiểu dữ liệu cho filter khuyến mãi
-export interface PromotionFilter {
-    id: string
-    name: string
-    type: string // Sẽ là 'Tất cả' | 'Phần trăm' | 'Trực tiếp'
-    sortBy: string
-    order: 'asc' | 'desc'
-}
-
-export const mockPromotions: Promotion[] = [
-    {
-        id: 'UuDaiT10',
-        name: 'Ưu đãi tháng 10',
-        type: 'Trực tiếp',
-        value: 100000.0,
-        startDate: '2024-10-01',
-        endDate: '2024-10-31',
-        description: 'Giảm giá tháng 10'
-    },
-    {
-        id: 'UuDaiT11',
-        name: 'Ưu đãi tháng 11',
-        type: 'Trực tiếp',
-        value: 50000.0,
-        startDate: '2024-11-01',
-        endDate: '2024-11-30',
-        description: 'Giảm giá tháng 11'
-    },
-    {
-        id: 'UuDaiT12',
-        name: 'Ưu đãi tháng 12',
-        type: 'Phần trăm',
-        value: 3.0,
-        startDate: '2024-12-01',
-        endDate: '2024-12-31',
-        description: 'Giảm giá tháng 12'
-    }
-]
-
-export const promotionTypes = [
-    { value: 'Phần trăm', label: 'Phần trăm' },
-    { value: 'Trực tiếp', label: 'Trực tiếp' }
-]
-
-const initialFilterState: PromotionFilter = {
-    id: '',
-    name: '',
-    type: 'Tất cả',
-    sortBy: 'id',
-    order: 'asc'
-}
-
-export default function Promotion() {
-    // State quản lý danh sách khuyến mãi
-    const [promotions, setPromotions] = useState<Promotion[]>(mockPromotions)
-    // State quản lý khuyến mãi đang được edit
     const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null)
 
-    // State cho các ô input filter
-    const [filterInputs, setFilterInputs] = useState<PromotionFilter>(initialFilterState)
-    // State cho bộ lọc đã được áp dụng
-    const [appliedFilters, setAppliedFilters] = useState<PromotionFilter>(initialFilterState)
+    const queryConfig = useFlightQueryConfig()
 
-    // --- Xử lý Logic ---
+    // 'filters' là state nội bộ
+    const [filters, setFilters] = useState<PromotionFilter>(() => {
+        const { promotion_code, discount_type, is_active } = queryConfig as PromotionFilter
+        return { promotion_code, discount_type, is_active }
+    })
 
-    // Cập nhật state của filter inputs
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target
-        setFilterInputs((prev) => ({ ...prev, [name]: value }))
-    }
+    // === GỌI API ===
 
-    // Xử lý khi nhấn nút "Tìm kiếm"
-    const handleFilterSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        setAppliedFilters(filterInputs)
-    }
+    // Gọi API Khuyến mãi (dùng queryConfig từ URL)
+    const { data: promoData, isLoading: isLoadingPromotions } = useQuery<PromotionListResponse, Error>({
+        queryKey: ['adminPromotions', queryConfig],
+        queryFn: () => promotionApi.getPromotions(queryConfig as PromotionFilter).then((res) => res.data),
+        staleTime: 1000 * 60
+    })
 
-    // Xử lý khi nhấn nút "Đặt lại"
-    const handleFilterReset = () => {
-        setFilterInputs(initialFilterState)
-        setAppliedFilters(initialFilterState)
-    }
+    // SỬA: Truy cập đúng cấu trúc API
+    const promotions = promoData?.data|| []
+    const pagination = promoData?.data?.pagination
 
-    // Xử lý submit form (Thêm mới / Cập nhật)
-    const handleFormSubmit: SubmitHandler<Promotion> = (data) => {
-        const isEditing = !!editingPromotion
-
-        if (isEditing) {
-            setPromotions((prev) => prev.map((p) => (p.id === data.id ? data : p)))
-            alert(`Cập nhật khuyến mãi ${data.id} thành công!`)
-        } else {
-            // Logic Thêm mới
-            if (promotions.find((p) => p.id === data.id)) {
-                alert(`Mã khuyến mãi ${data.id} đã tồn tại!`)
-                return
-            }
-            setPromotions((prev) => [data, ...prev])
-            alert(`Thêm khuyến mãi ${data.id} thành công!`)
+    // --- MUTATIONS (Thêm/Sửa/Xóa) ---
+    const createPromotionMutation = useMutation({
+        mutationFn: (data: Omit<PromotionFormData, 'promotion_id'>) => promotionApi.createPromotion(data),
+        onSuccess: () => {
+            toast.success('Thêm khuyến mãi thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminPromotions'] })
+            handleResetForm()
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Thêm thất bại')
         }
-        setEditingPromotion(null) // Reset form
+    })
+
+    const updatePromotionMutation = useMutation({
+        mutationFn: (data: PromotionFormData) => promotionApi.updatePromotion(data.promotion_id, data),
+        onSuccess: () => {
+            toast.success('Cập nhật khuyến mãi thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminPromotions'] })
+            handleResetForm()
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Cập nhật thất bại')
+        }
+    })
+
+    const deletePromotionMutation = useMutation({
+        mutationFn: (id: number) => promotionApi.deletePromotion(id),
+        onSuccess: () => {
+            toast.success('Xóa khuyến mãi thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminPromotions'] })
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Xóa thất bại')
+        }
+    })
+
+    // === HANDLERS ===
+    const onSubmitForm: SubmitHandler<PromotionFormData> = (data) => {
+        if (editingPromotion) {
+            updatePromotionMutation.mutate(data)
+        } else {
+            const { promotion_id, ...dataToSend } = data
+            createPromotionMutation.mutate(dataToSend)
+        }
     }
 
-    // Nút "Làm mới" trên form
-    const handleFormReset = () => {
+    const handleResetForm = () => {
         setEditingPromotion(null)
     }
 
-    // Nút "Sửa" trong bảng
-    const handleEdit = (promotion: Promotion) => {
-        setEditingPromotion(promotion)
+    // Cập nhật state filter nội bộ KHI GÕ
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target
+        setFilters((prev) => ({
+            ...prev,
+            [name]: value === 'Tất cả' ? '' : value
+        }))
+    }
+
+    // Hàm Submit filter (Cập nhật URL)
+    const handleFilterSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        const newParams = {
+            ...queryConfig,
+            ...filters,
+            page: '1'
+        }
+        const cleanedParams = omitBy(newParams, (value) => isNil(value) || value === '')
+        navigate({
+            pathname: path.adminPromotion, // Sửa: Dùng path trang admin
+            search: createSearchParams(cleanedParams).toString()
+        })
+    }
+
+    // Hàm Reset filter
+    const handleFilterReset = () => {
+        setFilters({})
+        const newParams = { page: '1', limit: queryConfig.limit || '10' }
+        navigate({
+            pathname: path.adminPromotion, // Sửa: Dùng path trang admin
+            search: createSearchParams(newParams).toString()
+        })
+    }
+
+    const handleEditClick = (promo: Promotion) => {
+        // Chuyển đổi 'discount_value' (string) sang number cho Form
+        setEditingPromotion({
+            ...promo,
+            discount_value: parseFloat(promo.discount_value),
+            min_purchase: parseFloat(promo.min_purchase)
+        } as any) // Ép kiểu 'any' vì Form Data khác API Data
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // Nút "Xóa" trong bảng
-    const handleDelete = (id: string) => {
-        if (window.confirm(`Bạn có chắc muốn xóa khuyến mãi mã ${id} không?`)) {
-            setPromotions((prev) => prev.filter((p) => p.id !== id))
-            alert('Xóa khuyến mãi thành công!')
-            if (editingPromotion?.id === id) {
-                setEditingPromotion(null)
-            }
+    const handleDeleteClick = (id: number) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa mã khuyến mãi này?')) {
+            deletePromotionMutation.mutate(id)
         }
     }
 
-    // Lọc và Sắp xếp danh sách
-    const processedPromotions = useMemo(() => {
-        let filtered = promotions.filter((p) => {
-            return (
-                p.id.toLowerCase().includes(appliedFilters.id.toLowerCase()) &&
-                p.name.toLowerCase().includes(appliedFilters.name.toLowerCase()) &&
-                (appliedFilters.type === 'Tất cả' || p.type === appliedFilters.type)
-            )
-        })
-
-        // Sắp xếp
-        filtered.sort((a, b) => {
-            const key = appliedFilters.sortBy as keyof Promotion
-            const valA = a[key]
-            const valB = b[key]
-
-            let compare = 0
-            if (typeof valA === 'number' && typeof valB === 'number') {
-                compare = valA - valB
-            } else {
-                compare = String(valA).toLowerCase().localeCompare(String(valB).toLowerCase())
-            }
-
-            return appliedFilters.order === 'asc' ? compare : -compare
-        })
-
-        return filtered
-    }, [promotions, appliedFilters])
-
-    // --- Render Giao diện ---
-
     return (
-        <main className='flex-1 p-4 md:p-6 bg-gray-100 min-h-screen'>
-            <h1 className='text-3xl font-bold mb-6 text-gray-900'>Quản lý khuyến mãi</h1>
+        <div className='max-w-[1278px] mx-auto py-8 px-4'>
+            <h1 className='text-3xl font-bold text-gray-900 text-center mb-8'>Quản lý Khuyến mãi</h1>
 
-            {/* Layout 2 cột: Form và Bộ lọc */}
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
-                {/* Cột chính (2/3) */}
-                <div className='lg:col-span-2'>
+            <div className='grid grid-cols-1 lg:grid-cols-12 gap-6'>
+                {/* --- CỘT CHÍNH (FORM VÀ BẢNG) --- */}
+                <div className='lg:col-span-9 space-y-6'>
+                    {/* Form Thêm/Sửa (Luôn hiển thị) */}
                     <PromotionForm
                         editingPromotion={editingPromotion}
-                        onSubmitForm={handleFormSubmit}
-                        onResetForm={handleFormReset}
+                        onSubmitForm={onSubmitForm}
+                        onResetForm={handleResetForm}
                     />
 
-                    <PromotionTable promotions={processedPromotions} onEdit={handleEdit} onDelete={handleDelete} />
-                </div>
+                    {/* Bảng Hiển thị Kết quả */}
+                    <PromotionTable
+                        promotions={promotions}
+                        isLoading={isLoadingPromotions}
+                        onEdit={handleEditClick}
+                        onDelete={handleDeleteClick}
+                    />
 
-                {/* Cột phụ (1/3) */}
-                <div className='lg:col-span-1'>
+                    {/* Phân trang */}
+                    {pagination && pagination.totalPages > 1 && (
+                        <Paginate pageSize={pagination.totalPages} queryConfig={queryConfig} />
+                    )}
+                </div>
+                {/* --- CỘT LỌC (FILTER) --- */}
+                <div className='lg:col-span-3'>
                     <PromotionFilterCard
-                        filters={filterInputs}
+                        filters={filters}
                         onFilterChange={handleFilterChange}
                         onFilterSubmit={handleFilterSubmit}
                         onFilterReset={handleFilterReset}
                     />
                 </div>
             </div>
-        </main>
+        </div>
     )
 }

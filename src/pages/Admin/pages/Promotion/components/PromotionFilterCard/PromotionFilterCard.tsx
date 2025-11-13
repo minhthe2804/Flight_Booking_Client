@@ -1,7 +1,8 @@
 import { FunnelIcon } from 'lucide-react'
-import { PromotionFilter, promotionTypes } from '../../Promotion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faRotate } from '@fortawesome/free-solid-svg-icons'
+import { useMemo } from 'react'
+import { PromotionFilter } from '~/types/promotion'
 
 interface PromotionFilterCardProps {
     filters: PromotionFilter
@@ -9,106 +10,87 @@ interface PromotionFilterCardProps {
     onFilterSubmit: (e: React.FormEvent) => void
     onFilterReset: () => void
 }
+
+const discountTypeOptions = [
+    { value: 'percentage', label: 'Phần trăm (%)' },
+    { value: 'fixed_amount', label: 'Số tiền (VND)' }
+]
+
+const statusOptions = [
+    { value: 'true', label: 'Đang hoạt động' },
+    { value: 'false', label: 'Không hoạt động' }
+]
+
 export default function PromotionFilterCard({
     filters,
     onFilterChange,
-    onFilterReset,
-    onFilterSubmit
+    onFilterSubmit,
+    onFilterReset
 }: PromotionFilterCardProps) {
     return (
         <div className='bg-white p-6 rounded-lg shadow-md h-fit'>
             <h2 className='flex items-center text-lg font-semibold mb-5 text-gray-800'>
                 <FunnelIcon className='h-5 w-5 mr-2 text-gray-500' />
-                Bộ lọc tìm kiếm
+                Bộ lọc Khuyến mãi
             </h2>
 
             <form onSubmit={onFilterSubmit}>
                 <div className='space-y-4'>
-                    {/* Mã khuyến mãi */}
+                    {/* Mã (Code) */}
                     <div>
-                        <label htmlFor='filter_id' className='block text-sm font-medium text-gray-700'>
+                        <label htmlFor='filter_code' className='block text-sm font-medium text-gray-700'>
                             Mã khuyến mãi
                         </label>
                         <input
                             type='text'
-                            name='id'
-                            id='filter_id'
-                            placeholder='Nhập mã khuyến mãi...'
-                            value={filters.id}
+                            name='promotion_code'
+                            id='filter_code'
+                            placeholder='VD: SUMMER2025'
+                            value={filters.promotion_code || ''}
                             onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none transtion duration-200 ease-in'
+                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         />
                     </div>
 
-                    {/* Tên khuyến mãi */}
-                    <div>
-                        <label htmlFor='filter_name' className='block text-sm font-medium text-gray-700'>
-                            Tên khuyến mãi
-                        </label>
-                        <input
-                            type='text'
-                            name='name'
-                            id='filter_name'
-                            placeholder='Nhập tên khuyến mãi...'
-                            value={filters.name}
-                            onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none transtion duration-200 ease-in'
-                        />
-                    </div>
-
-                    {/* Loại khuyến mãi */}
+                    {/* Loại giảm giá */}
                     <div>
                         <label htmlFor='filter_type' className='block text-sm font-medium text-gray-700'>
-                            Loại khuyến mãi
+                            Loại giảm giá
                         </label>
                         <select
-                            name='type'
+                            name='discount_type'
                             id='filter_type'
-                            value={filters.type}
+                            value={filters.discount_type || ''}
                             onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none transtion duration-200 ease-in'
+                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         >
-                            <option value='Tất cả'>Tất cả loại khuyến mãi</option>
-                            {promotionTypes.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                    {t.label}
+                            <option value=''>Tất cả</option>
+                            {discountTypeOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
                                 </option>
                             ))}
                         </select>
                     </div>
 
-                    {/* Sắp xếp theo */}
+                    {/* Trạng thái */}
                     <div>
-                        <label htmlFor='filter_sort' className='block text-sm font-medium text-gray-700'>
-                            Sắp xếp theo
+                        <label htmlFor='filter_status' className='block text-sm font-medium text-gray-700'>
+                            Trạng thái
                         </label>
                         <select
-                            name='sortBy'
-                            id='filter_sort'
-                            value={filters.sortBy}
+                            name='is_active'
+                            id='filter_status'
+                            value={filters.is_active || ''}
                             onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none transtion duration-200 ease-in'
+                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none'
                         >
-                            <option value='id'>Mã khuyến mãi</option>
-                            <option value='name'>Tên khuyến mãi</option>
-                            <option value='value'>Giá trị</option>
-                        </select>
-                    </div>
-
-                    {/* Thứ tự */}
-                    <div>
-                        <label htmlFor='filter_order' className='block text-sm font-medium text-gray-700'>
-                            Thứ tự
-                        </label>
-                        <select
-                            name='order'
-                            id='filter_order'
-                            value={filters.order}
-                            onChange={onFilterChange}
-                            className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none transtion duration-200 ease-in'
-                        >
-                            <option value='asc'>Tăng dần</option>
-                            <option value='desc'>Giảm dần</option>
+                            <option value=''>Tất cả</option>
+                            {statusOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -122,6 +104,7 @@ export default function PromotionFilterCard({
                         <FontAwesomeIcon icon={faMagnifyingGlass} className='mr-2 text-sm' />
                         Tìm kiếm
                     </button>
+
                     <button
                         type='button'
                         onClick={onFilterReset}

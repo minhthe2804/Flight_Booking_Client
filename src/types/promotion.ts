@@ -1,3 +1,5 @@
+import { FlightQueryConfig } from '~/hooks/useSearchFlightQueryConfig'
+
 export interface Promotion {
     promotion_id: number
     code: string
@@ -9,3 +11,9 @@ export interface Promotion {
     is_active: boolean
 }
 
+export type PromotionFilter = Pick<
+    FlightQueryConfig,
+    'page' | 'limit' | 'promotion_code' | 'discount_type' | 'is_active'
+>
+
+export type PromotionType = 'Phần trăm' | 'Trực tiếp'

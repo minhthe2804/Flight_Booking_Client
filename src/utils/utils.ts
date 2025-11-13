@@ -15,17 +15,17 @@ export function formatCurrencyVND(currency: number) {
 }
 
 export const formatDurationLookup = (startTime: string, endTime: string) => {
-  if (!startTime || !endTime) return ''
-  const start = new Date(startTime)
-  const end = new Date(endTime)
-  let diffInMinutes = (end.getTime() - start.getTime()) / (1000 * 60)
+    if (!startTime || !endTime) return ''
+    const start = new Date(startTime)
+    const end = new Date(endTime)
+    let diffInMinutes = (end.getTime() - start.getTime()) / (1000 * 60)
 
-  if (diffInMinutes < 0) diffInMinutes += 24 * 60 // Xử lý bay qua đêm
+    if (diffInMinutes < 0) diffInMinutes += 24 * 60 // Xử lý bay qua đêm
 
-  const hours = Math.floor(diffInMinutes / 60)
-  const minutes = Math.round(diffInMinutes % 60) // Làm tròn phút
+    const hours = Math.floor(diffInMinutes / 60)
+    const minutes = Math.round(diffInMinutes % 60) // Làm tròn phút
 
-  return `${hours}h ${minutes}m`
+    return `${hours}h ${minutes}m`
 }
 
 export const formatDateForAPI = (dateInput: Date | string | undefined | null): string => {
@@ -53,7 +53,7 @@ export const formatDateForAPI = (dateInput: Date | string | undefined | null): s
     const month = (date.getMonth() + 1).toString().padStart(2, '0') // +1 vì tháng 0-11
     const day = date.getDate().toString().padStart(2, '0')
 
-    return `${year}-${month}-${day}`
+    return `${day}-${month}-${year}`
 }
 
 export const formatFlightTimeOnly = (isoString: string, locale = 'vi-VN') => {

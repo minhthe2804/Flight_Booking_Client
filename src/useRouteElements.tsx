@@ -22,6 +22,7 @@ import PromotionAdmin from './pages/Admin/pages/Promotion'
 import PaymentSuccess from './pages/PaymentSuccess'
 import Profile from './pages/Profile/Profile'
 import ChangePassword from './pages/ChangePassword/ChangePassword'
+import Airline from './pages/Admin/pages/Airline'
 
 export default function useRouteElements() {
     const routeElements = useRoutes([
@@ -141,6 +142,10 @@ export default function useRouteElements() {
                         {
                             path: path.adminPromotion,
                             element: <PromotionAdmin />
+                        },
+                        {
+                            path: path.adminAirline,
+                            element: <Airline />
                         }
                     ]
                 }

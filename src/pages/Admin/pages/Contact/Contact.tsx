@@ -1,175 +1,186 @@
-import { useMemo, useState } from 'react'
-import ContactForm from './components/ContactForm/ContactForm'
+import React, { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
-import ContactTable from './components/ContactTable'
+import { AxiosError } from 'axios'
+import { useNavigate, createSearchParams } from 'react-router-dom'
+import { omitBy, isNil } from 'lodash'
+
+// Import các components con
+
+import Paginate from '~/components/Pagination'
+
+// Import API và Kiểu
+import { contactApi, Contact, ContactFormData, ContactListResponse } from '~/apis/contact.api'
+import { ContactFilter } from '~/types/contact.type' // Kiểu Filter
+import useFlightQueryConfig from '~/hooks/useSearchFlightQueryConfig'
+import { path } from '~/constants/path' // Giả sử bạn có path.admin_contacts
 import ContactFilterCard from './components/ContactFilterCard'
+import ContactForm from './components/ContactForm/ContactForm'
+import ContactTable from './components/ContactTable'
 
-export interface Contact {
-    id: number
-    lastName: string // Họ và chữ lót
-    firstName: string // Tên
-    phone: string // Số điện thoại
-    email: string // Email
-}
+// --- Component Chính ---
+export default function AdminContactPage() {
+    const queryClient = useQueryClient()
+    const navigate = useNavigate()
 
-// Kiểu dữ liệu cho filter người liên hệ
-export interface ContactFilter {
-    id: string
-    lastName: string
-    firstName: string
-    phone: string
-    email: string
-    sortBy: string
-    order: 'asc' | 'desc'
-}
-
-export const mockContacts: Contact[] = [
-    { id: 1, lastName: 'Nguyễn Hoàng', firstName: 'Anh', phone: '0123456789', email: 'nguyenhoanganh@gmail.com' },
-    { id: 2, lastName: 'Vũ Ngọc', firstName: 'Minh', phone: '0323456789', email: 'vungocminh@gmail.com' },
-    { id: 3, lastName: 'Bùi Ngọc', firstName: 'Hà', phone: '0323456789', email: 'buingoccha@gmail.com' }, // Gõ lại từ ảnh, email có thể khác
-    { id: 4, lastName: 'Đặng Quỳnh', firstName: 'Anh', phone: '0423456789', email: 'dangquynhanh@gmail.com' },
-    { id: 5, lastName: 'Lê Bảo', firstName: 'Châu', phone: '0783289133', email: 'lebaochau@gmail.com' }
-]
-
-const initialFilterState: ContactFilter = {
-    id: '',
-    lastName: '',
-    firstName: '',
-    phone: '',
-    email: '',
-    sortBy: 'id',
-    order: 'asc'
-}
-
-export default function Contact() {
-    // State quản lý danh sách người liên hệ
-    const [contacts, setContacts] = useState<Contact[]>(mockContacts)
-    // State quản lý người liên hệ đang được edit
     const [editingContact, setEditingContact] = useState<Contact | null>(null)
 
-    // State cho các ô input filter
-    const [filterInputs, setFilterInputs] = useState<ContactFilter>(initialFilterState)
-    // State cho bộ lọc đã được áp dụng
-    const [appliedFilters, setAppliedFilters] = useState<ContactFilter>(initialFilterState)
+    // 1. Lấy TẤT CẢ params từ URL (page, limit, và các filter)
+    const queryConfig = useFlightQueryConfig()
 
-    // --- Xử lý Logic ---
+    // 2. 'filters' là state nội bộ, chỉ dùng để điền vào form filter
+    const [filters, setFilters] = useState<ContactFilter>(() => {
+        const { first_name, last_name, phone, email, citizen_id } = queryConfig as ContactFilter
+        return { first_name, last_name, phone, email, citizen_id }
+    })
 
-    // Cập nhật state của filter inputs
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target
-        setFilterInputs((prev) => ({ ...prev, [name]: value }))
-    }
+    // === GỌI API ===
 
-    // Xử lý khi nhấn nút "Tìm kiếm"
-    const handleFilterSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        setAppliedFilters(filterInputs)
-    }
+    // 3. Gọi API Liên hệ (dùng queryConfig từ URL)
+    const { data: contactsData, isLoading: isLoadingContacts } = useQuery<ContactListResponse, Error>({
+        queryKey: ['adminContacts', queryConfig],
+        queryFn: () => contactApi.getContacts(queryConfig as ContactFilter).then((res) => res.data),
+        staleTime: 1000 * 60
+    })
 
-    // Xử lý khi nhấn nút "Đặt lại"
-    const handleFilterReset = () => {
-        setFilterInputs(initialFilterState)
-        setAppliedFilters(initialFilterState)
-    }
+    // SỬA: Truy cập đúng cấu trúc API
+    const contacts = contactsData?.data?.contacts || []
+    const pagination = contactsData?.data?.pagination
 
-    // Xử lý submit form (Thêm mới / Cập nhật)
-    const handleFormSubmit: SubmitHandler<Contact> = (data) => {
-        if (data.id !== 0) {
-            // data.id !== 0 nghĩa là đang Edit
-            setContacts((prev) => prev.map((c) => (c.id === data.id ? data : c)))
-            alert(`Cập nhật người liên hệ ${data.lastName} ${data.firstName} thành công!`)
-        } else {
-            // Logic Thêm mới
-            const newId = Math.max(0, ...contacts.map((c) => c.id)) + 1
-            const newContact = { ...data, id: newId }
-
-            setContacts((prev) => [newContact, ...prev])
-            alert(`Thêm người liên hệ ${newContact.lastName} ${newContact.firstName} thành công!`)
+    // --- 5. MUTATIONS (Thêm/Sửa/Xóa) ---
+    const createContactMutation = useMutation({
+        mutationFn: (data: Omit<ContactFormData, 'contact_id'>) => contactApi.createContact(data),
+        onSuccess: () => {
+            toast.success('Thêm liên hệ thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminContacts'] })
+            handleResetForm()
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Thêm thất bại')
         }
-        setEditingContact(null) // Reset form
+    })
+
+    const updateContactMutation = useMutation({
+        mutationFn: (data: ContactFormData) => contactApi.updateContact(data.contact_id, data),
+        onSuccess: () => {
+            toast.success('Cập nhật liên hệ thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminContacts'] })
+            handleResetForm()
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Cập nhật thất bại')
+        }
+    })
+
+    const deleteContactMutation = useMutation({
+        mutationFn: (id: number) => contactApi.deleteContact(id),
+        onSuccess: () => {
+            toast.success('Xóa liên hệ thành công!')
+            queryClient.invalidateQueries({ queryKey: ['adminContacts'] })
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Xóa thất bại')
+        }
+    })
+
+    // === 6. HANDLERS ===
+    const onSubmitForm: SubmitHandler<ContactFormData> = (data) => {
+        if (editingContact) {
+            updateContactMutation.mutate(data)
+        } else {
+            const { contact_id, ...dataToSend } = data
+            createContactMutation.mutate(dataToSend)
+        }
     }
 
-    // Nút "Làm mới" trên form
-    const handleFormReset = () => {
+    const handleResetForm = () => {
         setEditingContact(null)
     }
 
-    // Nút "Sửa" trong bảng
-    const handleEdit = (contact: Contact) => {
+    // Cập nhật state filter nội bộ KHI GÕ
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target
+        setFilters((prev) => ({
+            ...prev,
+            [name]: value === 'Tất cả' ? '' : value
+        }))
+    }
+
+    // Hàm Submit filter (Cập nhật URL)
+    const handleFilterSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        const newParams = {
+            ...queryConfig,
+            ...filters,
+            page: '1'
+        }
+        const cleanedParams = omitBy(newParams, (value) => isNil(value) || value === '')
+        navigate({
+            pathname: path.adminContact, // Sửa: Dùng path trang admin
+            search: createSearchParams(cleanedParams).toString()
+        })
+    }
+
+    // Hàm Reset filter
+    const handleFilterReset = () => {
+        setFilters({})
+        const newParams = { page: '1', limit: queryConfig.limit || '10' } // Sửa: Mặc định 10
+        navigate({
+            pathname: path.adminContact, // Sửa: Dùng path trang admin
+            search: createSearchParams(newParams).toString()
+        })
+    }
+
+    const handleEditClick = (contact: Contact) => {
         setEditingContact(contact)
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // Nút "Xóa" trong bảng
-    const handleDelete = (id: number) => {
-        if (window.confirm(`Bạn có chắc muốn xóa người liên hệ mã ${id} không?`)) {
-            setContacts((prev) => prev.filter((c) => c.id !== id))
-            alert('Xóa người liên hệ thành công!')
-            if (editingContact?.id === id) {
-                setEditingContact(null)
-            }
+    const handleDeleteClick = (id: number) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa liên hệ này?')) {
+            deleteContactMutation.mutate(id)
         }
     }
 
-    // Lọc và Sắp xếp danh sách người liên hệ
-    const processedContacts = useMemo(() => {
-        let filtered = contacts.filter((c) => {
-            return (
-                String(c.id).includes(appliedFilters.id) &&
-                c.lastName.toLowerCase().includes(appliedFilters.lastName.toLowerCase()) &&
-                c.firstName.toLowerCase().includes(appliedFilters.firstName.toLowerCase()) &&
-                c.phone.includes(appliedFilters.phone) &&
-                c.email.toLowerCase().includes(appliedFilters.email.toLowerCase())
-            )
-        })
-
-        // Sắp xếp
-        filtered.sort((a, b) => {
-            const key = appliedFilters.sortBy as keyof Omit<Contact, 'email' | 'phone'>
-
-            if (key === 'id') {
-                return appliedFilters.order === 'asc' ? a.id - b.id : b.id - a.id
-            }
-
-            const valA = String(a[key] || '').toLowerCase()
-            const valB = String(b[key] || '').toLowerCase()
-
-            if (valA < valB) return appliedFilters.order === 'asc' ? -1 : 1
-            if (valA > valB) return appliedFilters.order === 'asc' ? 1 : -1
-            return 0
-        })
-
-        return filtered
-    }, [contacts, appliedFilters])
-
-    // --- Render Giao diện ---
-
     return (
-        <main className='flex-1 p-4 md:p-6 bg-gray-100 min-h-screen'>
-            <h1 className='text-3xl font-bold mb-6 text-gray-900'>Quản lý người liên hệ</h1>
+        <div className='max-w-[1278px] mx-auto py-8 px-4'>
+            <h1 className='text-3xl font-bold text-gray-900 text-center mb-8'>Quản lý Liên hệ</h1>
 
-            {/* Layout 2 cột: Form và Bộ lọc */}
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
-                {/* Cột chính (2/3) */}
-                <div className='lg:col-span-2'>
+            <div className='grid grid-cols-1 lg:grid-cols-12 gap-6'>
+                {/* --- CỘT CHÍNH (FORM VÀ BẢNG) --- */}
+                <div className='lg:col-span-9 space-y-6'>
+                    {/* Form Thêm/Sửa (Luôn hiển thị) */}
                     <ContactForm
                         editingContact={editingContact}
-                        onSubmitForm={handleFormSubmit}
-                        onResetForm={handleFormReset}
+                        onSubmitForm={onSubmitForm}
+                        onResetForm={handleResetForm}
                     />
-                    <ContactTable contacts={processedContacts} onEdit={handleEdit} onDelete={handleDelete} />
+
+                    {/* Bảng Hiển thị Kết quả */}
+                    <ContactTable
+                        contacts={contacts}
+                        isLoading={isLoadingContacts}
+                        onEdit={handleEditClick}
+                        onDelete={handleDeleteClick}
+                    />
+
+                    {/* Phân trang */}
+                    {pagination && pagination.totalPages > 1 && (
+                        <Paginate pageSize={pagination.totalPages} queryConfig={queryConfig} />
+                    )}
                 </div>
 
-                {/* Cột phụ (1/3) */}
-                <div className='lg:col-span-1'>
+                {/* --- CỘT LỌC (FILTER) --- */}
+                <div className='lg:col-span-3'>
                     <ContactFilterCard
-                        filters={filterInputs}
+                        filters={filters}
                         onFilterChange={handleFilterChange}
                         onFilterSubmit={handleFilterSubmit}
                         onFilterReset={handleFilterReset}
                     />
                 </div>
             </div>
-        </main>
+        </div>
     )
 }
