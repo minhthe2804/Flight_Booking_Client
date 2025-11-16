@@ -22,7 +22,7 @@ const formatShortDate = (dateString: string) => {
 
 const BookingStatsChart = () => {
     // 1. Quản lý state của period
-    const [period, setPeriod] = useState<MarketSharePeriod>('14days')
+    const [period, setPeriod] = useState<MarketSharePeriod>('7days')
 
     // 2. useQuery để lấy DỮ LIỆU BIỂU ĐỒ
     const {

@@ -81,7 +81,6 @@ export default function AdminPassengerPage() {
         }
     })
 
-    // === 5. HANDLERS (Đã sửa) ===
     const onSubmitForm: SubmitHandler<Passenger> = (data) => {
         updatePassengerMutation.mutate(data)
     }

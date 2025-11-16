@@ -8,7 +8,6 @@ interface ContactTableProps {
     contacts: Contact[]
     isLoading: boolean
     onEdit: (contact: Contact) => void
-    onDelete: (id: number) => void
 }
 
 // Component Skeleton Bảng
@@ -38,7 +37,7 @@ const TableRowSkeleton: React.FC = () => (
     </tr>
 )
 
-export default function ContactTable({ contacts, isLoading, onEdit, onDelete }: ContactTableProps) {
+export default function ContactTable({ contacts, isLoading, onEdit }: ContactTableProps) {
     return (
         <div className='bg-white rounded-lg shadow-md overflow-hidden mt-6'>
             <div className='overflow-x-auto'>
@@ -110,13 +109,6 @@ export default function ContactTable({ contacts, isLoading, onEdit, onDelete }: 
                                                 onClick={() => onEdit(contact)}
                                             >
                                                 <FontAwesomeIcon icon={faPenToSquare} className='h-4 w-4' />
-                                            </button>
-                                            <button
-                                                title='Xóa'
-                                                className='border border-red-600 rounded-md text-red-600 hover:bg-red-50 transition-colors duration-150 p-2'
-                                                onClick={() => onDelete(contact.contact_id)}
-                                            >
-                                                <FontAwesomeIcon icon={faTrash} className='h-4 w-4' />
                                             </button>
                                         </div>
                                     </td>

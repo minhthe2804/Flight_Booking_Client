@@ -1,9 +1,9 @@
 import { Controller, SubmitHandler, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { contactAdminSchema } from '~/utils/rules' // Import schema
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import Input from '~/components/Input'
-import SelectField from '~/components/SelectField'
+
 import PhoneInput from 'react-phone-number-input'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
@@ -64,14 +64,13 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
 
     return (
         <div className='bg-white p-6 rounded-lg shadow-md'>
-            <h2 className='text-xl font-semibold mb-5 text-gray-800'>
-                {isEditing ? `Cập nhật Liên hệ (ID: ${editingContact?.contact_id})` : 'Thêm Liên hệ mới'}
-            </h2>
+            <h2 className='text-xl font-semibold mb-5 text-gray-800'>Cập nhật Liên hệ</h2>
 
             <form onSubmit={handleSubmit(onSubmitForm)}>
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
                     {/* Họ */}
                     <Input
+                        disabled={!isEditing}
                         isFont
                         label='Họ'
                         isRequired
@@ -83,6 +82,7 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
                     />
                     {/* Tên đệm */}
                     <Input
+                        disabled={!isEditing}
                         isFont
                         label='Tên đệm'
                         register={register}
@@ -93,6 +93,7 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
                     />
                     {/* Tên */}
                     <Input
+                        disabled={!isEditing}
                         isFont
                         label='Tên'
                         isRequired
@@ -104,6 +105,7 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
                     />
                     {/* Email */}
                     <Input
+                        disabled={!isEditing}
                         isFont
                         label='Email'
                         isRequired
@@ -130,33 +132,32 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
                                     defaultCountry='VN'
                                     international
                                     className='mt-2 text-black ' // Thêm class để CSS
+                                    disabled={!isEditing}
                                 />
                             )}
                         />
                         <p className='text-red-500 text-[14px] mt-[2px] min-h-[20px]'>{errors?.phone?.message}</p>
                     </div>
                 </div>
-
                 {/* Nút bấm */}
                 <div className='flex justify-start gap-3 mt-6'>
                     <button
                         type='submit'
-                        className='inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow-sm hover:bg-blue-700 transition duration-200 ease-in'
+                        className={`${!isEditing ? 'opacity-70' : 'hover:bg-blue-700'} inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow-sm  transition duration-200 ease-in`}
+                        disabled={!isEditing}
                     >
-                        {isEditing ? (
-                            <FontAwesomeIcon icon={faPenToSquare} className='text-white text-base' />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlus} className='text-white text-base' />
-                        )}
-                        {isEditing ? 'Cập nhật' : 'Thêm mới'}
+                        <FontAwesomeIcon icon={faPenToSquare} className='text-white text-base' />
+
+                        {'Cập nhật'}
                     </button>
                     <button
                         type='button'
                         onClick={handleResetClick}
-                        className='inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-medium rounded-md shadow-sm hover:bg-gray-600 transition duration-200 ease-in'
+                        disabled={!isEditing}
+                        className={`${!isEditing ? 'opacity-70' : 'hover:bg-gray-400'} inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white font-medium rounded-md shadow-sm transition duration-200 ease-in`}
                     >
                         <FontAwesomeIcon icon={faRotate} className='text-white text-base' />
-                        {isEditing ? 'Hủy' : 'Làm mới'}
+                        Làm mới
                     </button>
                 </div>
             </form>

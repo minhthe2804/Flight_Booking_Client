@@ -48,19 +48,6 @@ export default function AdminContactPage() {
     const contacts = contactsData?.data?.contacts || []
     const pagination = contactsData?.data?.pagination
 
-    // --- 5. MUTATIONS (Thêm/Sửa/Xóa) ---
-    const createContactMutation = useMutation({
-        mutationFn: (data: Omit<ContactFormData, 'contact_id'>) => contactApi.createContact(data),
-        onSuccess: () => {
-            toast.success('Thêm liên hệ thành công!')
-            queryClient.invalidateQueries({ queryKey: ['adminContacts'] })
-            handleResetForm()
-        },
-        onError: (error: AxiosError<{ message?: string }>) => {
-            toast.error(error.response?.data?.message || 'Thêm thất bại')
-        }
-    })
-
     const updateContactMutation = useMutation({
         mutationFn: (data: ContactFormData) => contactApi.updateContact(data.contact_id, data),
         onSuccess: () => {
@@ -73,25 +60,9 @@ export default function AdminContactPage() {
         }
     })
 
-    const deleteContactMutation = useMutation({
-        mutationFn: (id: number) => contactApi.deleteContact(id),
-        onSuccess: () => {
-            toast.success('Xóa liên hệ thành công!')
-            queryClient.invalidateQueries({ queryKey: ['adminContacts'] })
-        },
-        onError: (error: AxiosError<{ message?: string }>) => {
-            toast.error(error.response?.data?.message || 'Xóa thất bại')
-        }
-    })
-
     // === 6. HANDLERS ===
     const onSubmitForm: SubmitHandler<ContactFormData> = (data) => {
-        if (editingContact) {
-            updateContactMutation.mutate(data)
-        } else {
-            const { contact_id, ...dataToSend } = data
-            createContactMutation.mutate(dataToSend)
-        }
+        updateContactMutation.mutate(data)
     }
 
     const handleResetForm = () => {
@@ -137,11 +108,6 @@ export default function AdminContactPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    const handleDeleteClick = (id: number) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa liên hệ này?')) {
-            deleteContactMutation.mutate(id)
-        }
-    }
 
     return (
         <div className='max-w-[1278px] mx-auto py-8 px-4'>
@@ -162,7 +128,6 @@ export default function AdminContactPage() {
                         contacts={contacts}
                         isLoading={isLoadingContacts}
                         onEdit={handleEditClick}
-                        onDelete={handleDeleteClick}
                     />
 
                     {/* Phân trang */}

@@ -14,10 +14,11 @@ import Paginate from '~/components/Pagination'
 
 // Import API và Kiểu
 import { airportApi, Airport, AirportFormData, AirportListResponse } from '~/apis/airport.api'
-import { countryApi } from '~/apis/country.api' // API Quốc gia
+import { countryApi, CountryFormData } from '~/apis/country.api' // API Quốc gia
 import { AirportFilter } from '~/apis/airport.api' // Kiểu Filter
 import useFlightQueryConfig from '~/hooks/useSearchFlightQueryConfig'
 import { path } from '~/constants/path'
+import AddCountryModal from './components/AddCountryModal/AddCountryModal'
 
 // --- Component Chính ---
 export default function AdminAirportPage() {
@@ -25,6 +26,7 @@ export default function AdminAirportPage() {
     const navigate = useNavigate()
 
     const [editingAirport, setEditingAirport] = useState<Airport | null>(null)
+    const [isCountryModalOpen, setIsCountryModalOpen] = useState(false) // SỬA: Thêm state modal
 
     // 1. Lấy TẤT CẢ params từ URL (page, limit, và các filter)
     const queryConfig = useFlightQueryConfig()
@@ -46,6 +48,18 @@ export default function AdminAirportPage() {
         refetchOnWindowFocus: false
     })
     const countries = countriesData || []
+
+    const createCountryMutation = useMutation({
+        mutationFn: (data: CountryFormData) => countryApi.createCountry(data),
+        onSuccess: () => {
+            toast.success('Thêm quốc gia thành công!')
+            queryClient.invalidateQueries({ queryKey: ['countries'] }) // Tải lại danh sách quốc gia
+            setIsCountryModalOpen(false) // Đóng modal
+        },
+        onError: (error: AxiosError<{ message?: string }>) => {
+            toast.error(error.response?.data?.message || 'Thêm thất bại')
+        }
+    })
 
     // 4. Gọi API Sân bay (dùng queryConfig từ URL)
     const { data: airportsData, isLoading: isLoadingAirports } = useQuery<AirportListResponse, Error>({
@@ -153,6 +167,14 @@ export default function AdminAirportPage() {
         deleteAirportMutation.mutate(id)
     }
 
+    // SỬA: Thêm 2 handler cho modal
+    const handleOpenCountryModal = () => {
+        setIsCountryModalOpen(true)
+    }
+
+    const handleCountrySubmit: SubmitHandler<CountryFormData> = (data) => {
+        createCountryMutation.mutate(data)
+    }
     return (
         <div className='max-w-[1278px] mx-auto py-8 px-4'>
             <h1 className='text-3xl font-bold text-gray-900 text-center mb-8'>Quản lý Sân bay</h1>
@@ -167,6 +189,7 @@ export default function AdminAirportPage() {
                         onResetForm={handleResetForm}
                         countries={countries}
                         isLoadingCountries={isLoadingCountries}
+                        onOpenCountryModal={handleOpenCountryModal}
                     />
 
                     {/* Bảng Hiển thị Kết quả */}
@@ -195,6 +218,13 @@ export default function AdminAirportPage() {
                     />
                 </div>
             </div>
+
+            <AddCountryModal
+                isOpen={isCountryModalOpen}
+                onClose={() => setIsCountryModalOpen(false)}
+                onSubmit={handleCountrySubmit}
+                isLoading={createCountryMutation.isPending}
+            />
         </div>
     )
 }

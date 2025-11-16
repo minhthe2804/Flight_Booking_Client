@@ -57,9 +57,6 @@ const TableRowSkeleton: React.FC = () => (
             <div className='h-4 bg-gray-200 rounded w-3/4'></div>
         </td>
         <td className='px-6 py-4 whitespace-nowrap'>
-            <div className='h-4 bg-gray-200 rounded w-3/4'></div>
-        </td>
-        <td className='px-6 py-4 whitespace-nowrap'>
             <div className='h-4 bg-gray-200 rounded w-1/2'></div>
         </td>
         <td className='px-6 py-4 whitespace-nowrap'>
@@ -98,7 +95,6 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
             <div className='overflow-x-auto'>
                 <table className='min-w-full divide-y divide-gray-200'>
                     <thead className='bg-gray-50'>
-                        {/* SỬA: Cập nhật các cột */}
                         <tr>
                             <th
                                 scope='col'
@@ -116,12 +112,6 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
                             >
-                                Tên đệm
-                            </th>
-                            <th
-                                scope='col'
-                                className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
-                            >
                                 Tên
                             </th>
                             <th
@@ -130,7 +120,7 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
                             >
                                 Danh xưng
                             </th>
-                            {/* THÊM: Giới tính */}
+
                             <th
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
@@ -155,7 +145,7 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
                             >
                                 Quốc tịch
                             </th>
-                            {/* THÊM: Hộ chiếu */}
+
                             <th
                                 scope='col'
                                 className='px-6 py-3 text-left text-sm font-bold text-gray-800 uppercase tracking-wider'
@@ -191,37 +181,31 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
                         ) : passengers.length > 0 ? (
                             passengers?.map((p: any) => (
                                 <tr key={p.passenger_id} className='hover:bg-gray-50 transition-colors duration-150'>
-                                    {/* SỬA: Dùng p.passenger_id */}
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900'>
                                         {p.passenger_id}
                                     </td>
-                                    {/* SỬA: Dùng p.last_name */}
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>{p.last_name}</td>
-                                    {/* SỬA: Dùng p.middle_name */}
-                                    <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {p.middle_name || ''}
-                                    </td>
-                                    {/* SỬA: Dùng p.first_name */}
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {p.first_name}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>{p.title}</td>
-                                    {/* THÊM: Giới tính */}
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {getGenderLabel(p.gender)}
                                     </td>
-                                    {/* SỬA: Dùng p.citizen_id */}
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {p.citizen_id || ''}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {/* SỬA: Dùng p.date_of_birth */}
                                         {formatDate(p.date_of_birth)}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {p.nationality}
                                     </td>
-                                    {/* THÊM: Hộ chiếu */}
+
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
                                         {p.passport_number || ''}
                                     </td>
@@ -230,7 +214,6 @@ export default function PassengerTable({ passengers, isLoading, onEdit }: Passen
                                     </td>
 
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {/* SỬA: Dùng p.passenger_type */}
                                         {getTypeBadge(p.passenger_type)}
                                     </td>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>

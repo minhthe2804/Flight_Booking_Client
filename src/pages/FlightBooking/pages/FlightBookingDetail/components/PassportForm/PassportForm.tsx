@@ -9,13 +9,6 @@ import SelectField from '~/components/SelectField'
 import { countryApi } from '~/apis/country.api'
 import { useQuery } from '@tanstack/react-query'
 
-const countryOptions = [
-    { value: 'Việt Nam', label: 'Việt Nam' },
-    { value: 'Hoa Kỳ', label: 'Hoa Kỳ (United States)' },
-    { value: 'Nhật Bản', label: 'Nhật Bản (Japan)' },
-    { value: 'Hàn Quốc', label: 'Hàn Quốc (South Korea)' },
-    { value: 'Khác', label: 'Khác (Other)' }
-]
 
 // Định nghĩa props cho component
 interface PassportFormProps {
@@ -28,7 +21,7 @@ interface PassportFormProps {
 const PassportForm: React.FC<PassportFormProps> = ({ errors, control, register, index }) => {
     const { data: countriesData } = useQuery({
         queryKey: ['countries'],
-        queryFn: () => countryApi.getCountries().then((res) => res.data.data),
+        queryFn: () => countryApi.getCountriesUser().then((res) => res.data.data),
         staleTime: Infinity, // Cache vĩnh viễn
         refetchOnWindowFocus: false
     })

@@ -17,6 +17,8 @@ export interface Airline {
     is_active: boolean
     class_type: 'economy' | 'business'
     ServicePackages: ApiServicePackage[] // API trả về (PascalCase, string JSON)
+    service_packages?:ApiServicePackage[]
+
     Country?: Country
 }
 
@@ -27,6 +29,11 @@ interface BenefitPayload extends ServiceFeature {
     // (Giống hệt ServiceFeature)
 }
 
+export type AirlineSummary = Omit<Airline, 'ServicePackages' | 'Country'> & {
+    Country: {
+        country_name: string // (Giả sử List API trả về tên Country)
+    }
+}
 // Kiểu cho 'service_packages' (lồng nhau)
 interface ServicePackagePayload {
     package_id?: number // Optional khi tạo mới
@@ -45,7 +52,6 @@ export type AirlineFormData = {
     airline_name: string
     country_id: number // Cho phép undefined (khi chưa chọn)
     logo_url: string | null
-    is_active: boolean // Thêm (từ UI)
     service_packages: ServicePackagePayload[] // mảng 'service_packages'
 }
 // ------------------------------------

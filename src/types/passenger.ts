@@ -36,14 +36,14 @@ export const genders = [
 
 export interface PassengerAdmin {
     passenger_id: number
-    first_name: string 
-    middle_name: string | null
+    first_name: string
+
     last_name: string
     title: string
     gender: 'male' | 'female' | string
     citizen_id: string | null
     passenger_type: 'adult' | 'child' | 'infant'
-    date_of_birth: string 
+    date_of_birth: string
     nationality: string
     passport_number: string | null
     passport_expiry: string | null
@@ -52,9 +52,9 @@ export interface PassengerAdmin {
 
 // (Bao gồm các trường filter VÀ phân trang)
 export type PassengerFilterAdmin = Partial<
-  Omit<PassengerAdmin, 'passenger_id'> & {
-    passenger_id: string 
-    page: string
-    limit: string
-  }
+    Omit<PassengerAdmin, 'passenger_id'> & {
+        passenger_id: string
+        page: string
+        limit: string
+    }
 >

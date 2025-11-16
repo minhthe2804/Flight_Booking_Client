@@ -26,6 +26,7 @@ interface AirportFormProps {
     onResetForm: () => void
     countries: Country[]
     isLoadingCountries: boolean
+    onOpenCountryModal: () => void
 }
 
 export default function AirportForm({
@@ -33,7 +34,8 @@ export default function AirportForm({
     onSubmitForm,
     onResetForm,
     countries,
-    isLoadingCountries
+    isLoadingCountries,
+    onOpenCountryModal
 }: AirportFormProps) {
     const isEditing = !!editingAirport
 

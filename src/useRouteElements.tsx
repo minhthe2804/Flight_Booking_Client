@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useRoutes } from 'react-router-dom'
-import React, { useContext } from 'react'
+import { useContext } from 'react'
 
 import { path } from './constants/path'
 import { AppContext } from './contexts/app.context'
@@ -56,7 +56,6 @@ function UserRoute() {
 
 export default function useRouteElements() {
     const routeElements = useRoutes([
-        // --- NHÓM 1: CÁC ROUTE CÔNG KHAI (Public) ---
         {
             path: path.login,
             element: <Login />

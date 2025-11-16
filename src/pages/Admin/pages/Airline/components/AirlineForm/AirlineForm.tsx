@@ -81,11 +81,9 @@ const defaultValues: AirlineFormData = {
     airline_id: 0,
     airline_code: '',
     airline_name: '',
-    country_id: 0, // SỬA: Dùng undefined (để yup.required() bắt lỗi)
+    country_id: 0,
     logo_url: '',
-    is_active: true,
     service_packages: [
-        // Dùng 'service_packages'
         { ...defaultPackage, class_type: 'economy', package_name: 'Economy Class', package_code: 'ECONOMY' },
         { ...defaultPackage, class_type: 'business', package_name: 'Business Class', package_code: 'BUSINESS' }
     ]
@@ -336,7 +334,6 @@ export default function AirlineForm({
                 airline_name: editingAirline.airline_name,
                 country_id: editingAirline.country_id,
                 logo_url: editingAirline.logo_url || null,
-                is_active: editingAirline.is_active, // Thêm
                 service_packages: formattedPackages as any
             })
         } else {
@@ -443,22 +440,6 @@ export default function AirlineForm({
                                 classNameInput='text-black placeholder:text-[14px] text-sm mt-1 w-full outline-none border border-gray-300 rounded-md py-2 px-3 text-sm focus:border-blue-500 transition duration-300 ease-in'
                                 errorMessage={errors.logo_url?.message}
                             />
-                        </div>
-                        <div className='md:col-span-12'>
-                            <div className='flex items-center'>
-                                <input
-                                    type='checkbox'
-                                    id='is_active'
-                                    {...register('is_active')}
-                                    className='h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer'
-                                />
-                                <label
-                                    htmlFor='is_active'
-                                    className='ml-2 text-sm font-medium text-gray-700 cursor-pointer'
-                                >
-                                    Kích hoạt hãng bay này
-                                </label>
-                            </div>
                         </div>
                     </div>
                 </div>

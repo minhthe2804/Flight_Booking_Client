@@ -280,8 +280,6 @@ export const customerSchemaPassenger = yup.object({
     last_name: yup.string().required('Họ là bắt buộc').max(160, 'Độ dài tối đa 160 kí tự'),
     first_name: yup.string().required('Tên là bắt buộc').max(160, 'Độ dài tối đa là 160 kí tự'),
 
-    middle_name: yup.string().nullable().defined(), // Thêm: Tên đệm
-
     title: yup.string().required('Vui lòng chọn danh xưng'),
 
     gender: yup.string().required('Vui lòng chọn giới tính'), // Thêm: Giới tính
@@ -455,7 +453,7 @@ const servicePackageSchema = yup.object({
         .required('Hệ số nhân là bắt buộc')
         .min(0, 'Hệ số phải > 0')
         .typeError('Hệ số phải là số'),
-    benefits: yup.array().of(benefitSchema).required() 
+    benefits: yup.array().of(benefitSchema).required()
 })
 
 // SỬA: Schema cho Form Hãng bay (chính)
@@ -471,10 +469,17 @@ export const airlineFormSchema = yup.object({
         .positive('Quốc gia là bắt buộc') // 0 sẽ không hợp lệ
         .typeError('Quốc gia là bắt buộc'),
     logo_url: yup.string().url('Phải là URL hợp lệ').nullable().defined().default(null),
-    is_active: yup.boolean().required(),
-
     // SỬA: Dùng 'service_packages' (snake_case)
     service_packages: yup.array().of(servicePackageSchema).min(1, 'Phải có ít nhất 1 gói dịch vụ').required()
+})
+
+export const countrySchema = yup.object({
+    country_name: yup.string().required('Tên quốc gia là bắt buộc'),
+    country_code: yup
+        .string()
+        .required('Mã quốc gia là bắt buộc')
+        .max(3, 'Mã quốc gia tối đa 3 ký tự (VD: VN)')
+        .uppercase()
 })
 
 export type Schema = yup.InferType<typeof schema>
@@ -493,3 +498,4 @@ export type ChangePasswordSchema = yup.InferType<typeof changePasswordSchema>
 export type ContactAdminSchema = yup.InferType<typeof contactAdminSchema>
 export type PromotionAdminSchema = yup.InferType<typeof promotionAdminSchema>
 export type AirlineFormSchema = yup.InferType<typeof airlineFormSchema>
+export type CountryFormData = yup.InferType<typeof countrySchema>

@@ -17,7 +17,6 @@ const defaultValues: Passenger = {
     passenger_id: 0,
     last_name: '',
     first_name: '',
-    middle_name: '',
     title: '',
     gender: 'male',
     citizen_id: '',
@@ -64,7 +63,6 @@ export default function PassengerForm({
         if (editingPassenger) {
             reset({
                 ...editingPassenger,
-                middle_name: editingPassenger.middle_name || '',
                 citizen_id: editingPassenger.citizen_id || '',
                 passport_number: editingPassenger.passport_number || '',
                 passport_expiry: editingPassenger.passport_expiry || '',
@@ -110,19 +108,6 @@ export default function PassengerForm({
                         errorMessage={errors.last_name?.message}
                         disabled={!isEditing}
                     />
-                    {/* Tên đệm */}
-                    <Input
-                        label='Tên đệm'
-                        isFont
-                        placeholder='VD: Van'
-                        register={register}
-                        type='text'
-                        name='middle_name'
-                        classNameError='text-red-500 text-[14px] mt-1 min-h-[20px]'
-                        classNameInput='text-black mt-2 w-full outline-none border border-gray-300 rounded-[4px] py-2 px-3 focus:border-blue-500 transition duration-200'
-                        errorMessage={errors.middle_name?.message}
-                        disabled={!isEditing}
-                    />
                     {/* Tên */}
                     <Input
                         label='Tên'
@@ -158,8 +143,8 @@ export default function PassengerForm({
                         disabled={!isEditing}
                     />
                     {/* Ngày sinh */}
-                    <div>
-                        <label htmlFor='dob' className='block text-sm font-medium text-gray-700'>
+                    <div className=''>
+                        <label htmlFor='dob' className='block text-[15px] font-medium text-gray-700'>
                             Ngày sinh <span className='text-red-500'>*</span>
                         </label>
                         <input
