@@ -1,31 +1,17 @@
 import { useState, useMemo } from 'react'
-import {
-    faInfo,
-    faSort,
-    faExclamationTriangle,
-    faSearch
-    // faTrash // Không cần nữa
-} from '@fortawesome/free-solid-svg-icons'
+import { faInfo, faSort, faExclamationTriangle, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// Bỏ useMutation, useQueryClient
+
 import { useQuery } from '@tanstack/react-query'
-// Bỏ Link (nếu chỉ dùng để xem chi tiết)
-// import { Link } from 'react-router-dom'
 
-// Import các file của bạn
 import Paginate from '~/components/Pagination'
-// import CancelBookingModal from './components/CancelBookingModal' // Bỏ modal cũ
-import BookingDetailModal from './components/BookingDetailModal/BookingDetailModal' // ✅ Import Modal MỚI
+
+import BookingDetailModal from './components/BookingDetailModal/BookingDetailModal'
 import { bookingApi } from '~/apis/booking.api'
-// Bỏ isAxiosError
 import { formatCurrencyVND, formatDateTime } from '~/utils/utils'
-// import { path } from '~/constants/path' // Bỏ path (nếu không dùng Link)
 import { BookingHistoryItem } from '~/types/reservation.type'
-
 import useFlightQueryConfig from '~/hooks/useSearchFlightQueryConfig'
-// import { toast } from 'react-toastify' // Bỏ toast
 
-// Helper định dạng trạng thái (giữ nguyên)
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'confirmed':
@@ -256,15 +242,15 @@ export default function Reservation() {
                                 Array(limit)
                                     .fill(0)
                                     .map((_, idx) => <TableRowSkeleton key={idx} />)}
-                            {isError && (
+                            {/* {isError && (
                                 <tr>
                                     <td colSpan={8} className='text-center p-4 text-red-600'>
                                         <FontAwesomeIcon icon={faExclamationTriangle} className='mr-2' />
                                         Lỗi khi tải dữ liệu.
                                     </td>
                                 </tr>
-                            )}
-                            {!isLoading && !isError && bookings.length === 0 && (
+                            )} */}
+                            {!isLoading && bookings.length === 0 && (
                                 <tr>
                                     <td colSpan={8} className='text-center p-4 text-gray-500'>
                                         Không tìm thấy đơn đặt chỗ nào.

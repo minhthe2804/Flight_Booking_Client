@@ -12,7 +12,7 @@ interface AircraftFilterCardProps {
     onFilterChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void
     onFilterSubmit: (e: React.FormEvent) => void
     onFilterReset: () => void
-    airlines: Airline[]
+    airlines: Airline[] | any
     isLoadingAirlines: boolean
 }
 
@@ -26,7 +26,7 @@ export default function AircraftFilterCard({
 }: AircraftFilterCardProps) {
     const airlineOptions = useMemo(() => {
         if (!airlines) return []
-        return airlines.map((a) => ({
+        return airlines.map((a: Airline) => ({
             value: a.airline_id.toString(), // Lọc theo ID
             label: a.airline_name
         }))
@@ -80,7 +80,7 @@ export default function AircraftFilterCard({
                             className='text-black mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 outline-none disabled:bg-gray-100'
                         >
                             <option value=''>Tất cả</option>
-                            {airlineOptions.map((n) => (
+                            {airlineOptions.map((n: any) => (
                                 <option key={n.value} value={n.value}>
                                     {n.label}
                                 </option>

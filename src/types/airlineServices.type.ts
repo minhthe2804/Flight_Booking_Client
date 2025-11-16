@@ -70,8 +70,22 @@ export interface PackageConfig {
 export interface ServiceFeature {
     service_id: number
     name: string
-    type: string // 'baggage_hand', 'baggage_check', 'ticket_refund'...
-    value: number | null // 23 (kg), 80 (%)
-    unit: string | null // "kg", "%"
+    type: string
+    value: number // SỬA: Xóa | null
+    unit: string | null
     description: string
+}
+
+// --- KIỂU 2: SERVICE PACKAGE (TỪ API) ---
+// Đây là kiểu dữ liệu cho mảng 'ServicePackages'
+// mà API Hãng bay (Airline) trả về
+export interface ServicePackageAdmin {
+    package_id: number
+    package_name: string
+    package_code: string
+    class_type: string // 'economy' | 'business'
+    package_type: string
+    price_multiplier: string // API trả về string "1.00"
+    description: string | null
+    services_included: string // API trả về một chuỗi JSON
 }

@@ -101,6 +101,7 @@ export default function PromotionForm({ editingPromotion, onSubmitForm, onResetF
                     />
                     {/* Loại giảm giá */}
                     <SelectField
+                        isLabel
                         name='discount_type'
                         control={control}
                         label='Loại giảm giá'

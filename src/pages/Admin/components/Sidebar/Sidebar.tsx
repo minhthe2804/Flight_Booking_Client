@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { MenuIcon } from '../../Admin'
 import { path } from '~/constants/path'
 import Button from '~/components/Button'
 import { NavLink } from 'react-router-dom'
+import { AppContext } from '~/contexts/app.context'
+import { clearLS } from '~/utils/auth'
 
 // Định nghĩa kiểu cho một link điều hướng
 interface NavLink {
@@ -196,6 +198,13 @@ const navLinks: NavLink[] = [
 ]
 
 export default function Sidebar({ isOpen }: SidebarProps) {
+    const { reset } = useContext(AppContext)
+
+    const handleLogout = () => {
+        reset()
+        clearLS()
+    }
+
     return (
         <aside
             className={`
@@ -232,7 +241,10 @@ export default function Sidebar({ isOpen }: SidebarProps) {
                     ))}
                 </ul>
             </nav>
-            <div className='flex justify-center px-4 py-4 mt-auto  border-t border-slate-800'>
+            <div
+                className='flex justify-center px-4 py-4 mt-auto  border-t border-slate-800'
+                onClick={() => handleLogout()}
+            >
                 <Button className='flex items-center p-3 rounded-lg transition-colors duration-200 text-gray-400 hover:bg-red-800 hover:text-white'>
                     <IconLogout className='h-6 w-6' />
                     <span className='ml-4 font-medium'>Đăng xuất</span>

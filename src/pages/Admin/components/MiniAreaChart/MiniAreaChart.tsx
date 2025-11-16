@@ -1,5 +1,6 @@
+// (File: MiniAreaChart.tsx - ĐÃ SỬA)
 import React from 'react'
-import { Line } from 'react-chartjs-2'
+import { Line } from 'react-chartjs-2' // Biểu đồ vùng (Area chart) vẫn dùng component Line
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -8,52 +9,30 @@ import {
     LineElement,
     Tooltip,
     ChartOptions,
-    Filler
+    ChartData, // Import ChartData
+    Filler // Import Filler
 } from 'chart.js'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler)
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Tooltip,
+    Filler // Đăng ký Filler
+)
 
-const data = {
-    labels: ['Ngày 1', 'Ngày 2', 'Ngày 3', 'Ngày 4', 'Ngày 5', 'Ngày 6', 'Ngày 7'],
-    datasets: [
-        {
-            label: 'Doanh thu',
-            data: [200000, 100000, 150000, 200000, 350000, 180000, 200000],
-            fill: true, // Quan trọng: Bật tô màu vùng
-            backgroundColor: 'rgba(16, 185, 129, 0.2)', // Xanh lá, mờ (emerald-500)
-            borderColor: '#10B981', // Xanh lá, đậm
-            tension: 0.4
-        }
-    ]
+// 1. Định nghĩa props mà component sẽ nhận
+interface MiniAreaChartProps {
+    data: ChartData<'line', (number | null)[], unknown>
+    options: ChartOptions<'line'>
 }
 
-const options: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-        mode: 'index', // Hiển thị tooltip theo chỉ số trên trục X
-        intersect: false // Hiển thị tooltip ngay cả khi không chạm vào điểm dữ liệu
-    },
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            callbacks: {
-                label: (context) => `Doanh thu: ${context.formattedValue} ₫`
-            }
-        }
-    },
-    scales: {
-        y: { display: false },
-        x: { display: false }
-    },
-    elements: {
-        point: {
-            radius: 0
-        }
-    }
-}
+// 2. Sửa component để nhận props
+const MiniAreaChart: React.FC<MiniAreaChartProps> = ({ data, options }) => {
+    // 3. Xóa bỏ const data = {...} và const options = {...} (dữ liệu tĩnh)
 
-const MiniAreaChart: React.FC = () => {
+    // 4. Render component Line với data và options động từ props
     return <Line options={options} data={data} />
 }
 

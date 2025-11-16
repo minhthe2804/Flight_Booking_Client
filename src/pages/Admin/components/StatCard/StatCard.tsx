@@ -27,10 +27,10 @@ const IncreaseIcon = () => (
 
 interface StatCardProps {
     title: string
-    value: string
+    value: string | number
     change?: string
     changeType?: 'increase' | 'decrease'
-    description: string
+    description: string | number
     changeColor?: string
 }
 

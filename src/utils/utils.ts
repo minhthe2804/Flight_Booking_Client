@@ -2,8 +2,19 @@ import axios, { AxiosError } from 'axios'
 import HttpStatusCode from '~/constants/httpStatusCode.emum'
 import { ErrorResponse } from '~/types/utils.type'
 
-export function formatCurrency(amount: number) {
-    return amount.toLocaleString('vi-VN') + ' đ'
+export const formatCurrency = (value: number | null | undefined) => {
+    // 1. Thêm kiểm tra
+    // Nếu giá trị là null, undefined, hoặc không phải là số hợp lệ,
+    // trả về một giá trị mặc định.
+    if (value === null || typeof value === 'undefined' || isNaN(value)) {
+        return '0 ₫' // Trả về '0 ₫' làm giá trị dự phòng
+    }
+
+    // 2. Chỉ định dạng nếu 'value' là một con số hợp lệ
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(value)
 }
 
 export function formatCurrencyVND(currency: number) {

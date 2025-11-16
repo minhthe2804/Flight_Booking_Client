@@ -1,3 +1,4 @@
+// (File: MiniLineChart.tsx - ĐÃ SỬA)
 import React from 'react'
 import { Line } from 'react-chartjs-2'
 import {
@@ -8,48 +9,30 @@ import {
     LineElement,
     Tooltip,
     ChartOptions,
-    Filler // Import Filler để tô màu
+    ChartData, // Import ChartData
+    Filler
 } from 'chart.js'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler)
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Tooltip,
+    Filler // Đăng ký Filler
+)
 
-const data = {
-    labels: ['12/10', '13/10', '14/10', '15/10', '16/10', '17/10', '18/10'],
-    datasets: [
-        {
-            label: 'Đặt chỗ',
-            data: [3, 5, 4, 2, 6, 4, 2],
-            borderColor: '#3B82F6', // Xanh dương
-            tension: 0.4
-        },
-        {
-            label: 'Vé bán ra',
-            data: [5, 8, 6, 3, 9, 5, 3],
-            borderColor: '#F59E0B', // Vàng
-            tension: 0.4
-        }
-    ]
+// 1. Định nghĩa props mà component sẽ nhận
+interface MiniLineChartProps {
+    data: ChartData<'line', (number | null)[], unknown>
+    options: ChartOptions<'line'>
 }
 
-const options: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { display: false },
-        tooltip: { mode: 'index', intersect: false } // Hiển thị tooltip cho cả 2 đường
-    },
-    scales: {
-        y: { display: false },
-        x: { display: false }
-    },
-    elements: {
-        point: {
-            radius: 0 // Ẩn các điểm chấm trên đường
-        }
-    }
-}
+// 2. Sửa component để nhận props
+const MiniLineChart: React.FC<MiniLineChartProps> = ({ data, options }) => {
+    // 3. Xóa bỏ const data = {...} và const options = {...} (dữ liệu tĩnh)
 
-const MiniLineChart: React.FC = () => {
+    // 4. Render component Line với data và options động từ props
     return <Line options={options} data={data} />
 }
 

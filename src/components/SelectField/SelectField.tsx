@@ -21,6 +21,7 @@ interface SelectFieldProps<T extends FieldValues> {
     options: SelectOption[]
     disabled?: boolean
     countryApi?: boolean | undefined
+    isLabel?: boolean
 }
 
 const SelectField = <T extends FieldValues>({
@@ -31,6 +32,7 @@ const SelectField = <T extends FieldValues>({
     placeholder,
     options = [],
     countryApi,
+    isLabel,
     ...rest
 }: SelectFieldProps<T>) => {
     return (
@@ -39,8 +41,11 @@ const SelectField = <T extends FieldValues>({
             name={name}
             control={control}
             render={({ field, fieldState: { error } }) => (
-                <div>
-                    <label htmlFor={name} className='block text-sm font-medium text-gray-700 mb-1'>
+                <div className={`${isLabel ? 'mt-1' : ''}`}>
+                    <label
+                        htmlFor={name}
+                        className={`block ${isLabel ? 'text-base' : 'text-sm'} font-medium text-gray-700 ${isLabel ? '' : 'mb-1'} `}
+                    >
                         {label}
                         <span className='text-red-500'>*</span>
                     </label>
@@ -48,7 +53,7 @@ const SelectField = <T extends FieldValues>({
                         id={name}
                         {...field} // Gắn các props của RHF (onChange, onBlur, value, ref)
                         {...rest}
-                        className={`mt-2 ${isNationality ? 'w-full' : 'w-[200px]'}  outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]`}
+                        className={`mt-1 ${isNationality ? 'w-full' : 'w-[200px]'}  outline-none border-[1px] border-[#cdcdcd] rounded-[4px] ${isLabel ? 'py-[9px]' : 'py-[7px]'}  px-[12px] placeholder:text-[12px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]`}
                     >
                         <option value=''>{placeholder || '--- Chọn ---'}</option>
                         {options.map((option) => (

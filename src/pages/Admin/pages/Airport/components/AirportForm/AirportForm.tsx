@@ -123,6 +123,7 @@ export default function AirportForm({
                     />
                     {/* Quốc gia */}
                     <SelectField
+                        isLabel
                         name='country_id'
                         control={control}
                         label='Quốc gia'
@@ -131,6 +132,7 @@ export default function AirportForm({
                     />
                     {/* Loại sân bay */}
                     <SelectField
+                        isLabel
                         name='airport_type'
                         control={control}
                         label='Loại sân bay'

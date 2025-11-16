@@ -25,7 +25,7 @@ interface AircraftFormProps {
     editingAircraft: Aircraft | null
     onSubmitForm: SubmitHandler<AircraftFormData>
     onResetForm: () => void
-    airlines: Airline[]
+    airlines: Airline[] | any
     isLoadingAirlines: boolean
 }
 
@@ -73,7 +73,7 @@ export default function AircraftForm({
 
     const airlineOptions = useMemo(() => {
         if (!airlines) return []
-        return airlines.map((a) => ({
+        return airlines.map((a: Airline) => ({
             value: a.airline_id, // Gửi ID (number)
             label: a.airline_name // 'Vietnam Airlines'
         }))
@@ -114,6 +114,8 @@ export default function AircraftForm({
                     />
                     {/* Hãng bay */}
                     <SelectField
+                        isLabel
+                        
                         name='airline_id'
                         control={control}
                         label='Hãng hàng không'

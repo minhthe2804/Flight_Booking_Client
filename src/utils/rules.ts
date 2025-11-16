@@ -435,6 +435,48 @@ export const promotionAdminSchema = yup.object({
         .typeError('Giới hạn phải là số')
 })
 
+const benefitSchema = yup.object({
+    service_id: yup.number().required(),
+    name: yup.string().required(),
+    type: yup.string().required(),
+    value: yup.number().required('Tham số là bắt buộc').typeError('Tham số phải là số'),
+    unit: yup.string().nullable().defined(),
+    description: yup.string().required()
+})
+
+const servicePackageSchema = yup.object({
+    package_id: yup.number().optional(), // ID (nếu đang sửa)
+    package_name: yup.string().required('Tên gói là bắt buộc'),
+    package_code: yup.string().required('Mã code là bắt buộc'),
+    class_type: yup.string().oneOf(['economy', 'business']).required(),
+    package_type: yup.string().required('Loại gói là bắt buộc'),
+    price_multiplier: yup // SỬA: Khớp với payload (number)
+        .number()
+        .required('Hệ số nhân là bắt buộc')
+        .min(0, 'Hệ số phải > 0')
+        .typeError('Hệ số phải là số'),
+    benefits: yup.array().of(benefitSchema).required() 
+})
+
+// SỬA: Schema cho Form Hãng bay (chính)
+export const airlineFormSchema = yup.object({
+    airline_id: yup.number().defined().default(0),
+    airline_code: yup.string().required('Mã hãng bay là bắt buộc').max(3, 'Tối đa 3 ký tự'),
+    airline_name: yup.string().required('Tên hãng bay là bắt buộc'),
+    // SỬA: country_id (Cho phép 0 hoặc undefined, nhưng yêu cầu số dương)
+    country_id: yup
+        .number()
+        .transform((value) => (isNaN(value) ? undefined : value)) // Biến NaN thành undefined
+        .required('Quốc gia là bắt buộc')
+        .positive('Quốc gia là bắt buộc') // 0 sẽ không hợp lệ
+        .typeError('Quốc gia là bắt buộc'),
+    logo_url: yup.string().url('Phải là URL hợp lệ').nullable().defined().default(null),
+    is_active: yup.boolean().required(),
+
+    // SỬA: Dùng 'service_packages' (snake_case)
+    service_packages: yup.array().of(servicePackageSchema).min(1, 'Phải có ít nhất 1 gói dịch vụ').required()
+})
+
 export type Schema = yup.InferType<typeof schema>
 export type UserSchema = yup.InferType<typeof userSchema>
 export type PassportFormData = yup.InferType<typeof passportSchema>
@@ -450,3 +492,4 @@ export type ProfileSchema = yup.InferType<typeof profileSchema>
 export type ChangePasswordSchema = yup.InferType<typeof changePasswordSchema>
 export type ContactAdminSchema = yup.InferType<typeof contactAdminSchema>
 export type PromotionAdminSchema = yup.InferType<typeof promotionAdminSchema>
+export type AirlineFormSchema = yup.InferType<typeof airlineFormSchema>

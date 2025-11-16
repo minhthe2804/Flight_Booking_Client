@@ -17,7 +17,7 @@ import { URL_LOGIN, URL_REFRESH_TOKEN, URL_REGISTER } from '../apis/auth.api'
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from '..//types/utils.type'
 import { env } from 'process'
-const API_URL= import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL
 export class Http {
     instance: AxiosInstance
     private accessToken: string

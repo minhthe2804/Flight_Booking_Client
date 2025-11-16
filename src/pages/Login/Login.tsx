@@ -51,12 +51,18 @@ export default function Login() {
     const onSubmit = handleSubmit((data) => {
         loginMutation.mutate(data, {
             onSuccess: (data) => {
+                const profile = data.data as unknown as AuthResponse
+                console.log(profile)
                 const newData = data.data as unknown as AuthResponse
                 toast.success('Đăng nhập thành công', { autoClose: 3000 })
                 reset({ email: '', password: '' })
                 setIsAuthenticated(true)
                 setProfile(newData.data.user)
-                navigate(path.home)
+                if ((profile.data.user.roles[0] as string) === 'admin') {
+                    navigate(path.admin)
+                } else {
+                    navigate(path.home)
+                }
             },
             onError: (error) => {
                 if (isAxiosUnprocessableEntityError<ErrorResponse<FormData>>(error)) {
@@ -182,11 +188,15 @@ export default function Login() {
                         </div>
                         <div className='w-full h-[1px] bg-white opacity-35 mt-4'></div>
                         <p className='text-[20px] text-center mt-4'>Hoặc đăng nhập bằng:</p>
-                        <button className='w-full py-[7px] border border-[#0d89f7] rounded-md cursor-pointer mt-2 flex items-center justify-center gap-2'>
-                            <FontAwesomeIcon icon={faG} className='text-[#0d89f7] text-[20px]' />
-                            <span className='text-[18px] text-[#0d89f7]'>Google</span>
-                        </button>
                     </form>
+                    <a
+                        // Cập nhật URL backend của bạn tại đây (ví dụ: /api/auth/google)
+                        href={`${import.meta.env.VITE_API_URL}/auth/google`}
+                        className='w-[400px] mx-auto py-[7px] border border-[#0d89f7] rounded-md cursor-pointer mt-2 flex items-center justify-center gap-2'
+                    >
+                        <FontAwesomeIcon icon={faG} className='text-[#0d89f7] text-[20px]' />
+                        <span className='text-[18px] text-[#0d89f7]'>Google</span>
+                    </a>
                 </div>
             </div>
         </div>

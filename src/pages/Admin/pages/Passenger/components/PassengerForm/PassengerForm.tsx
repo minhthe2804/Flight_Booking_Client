@@ -139,6 +139,7 @@ export default function PassengerForm({
                     />
                     {/* Danh xưng */}
                     <SelectField
+                        isLabel
                         name='title'
                         control={control}
                         label='Danh xưng'
@@ -148,6 +149,7 @@ export default function PassengerForm({
                     />
                     {/* Giới tính */}
                     <SelectField
+                        isLabel
                         name='gender'
                         control={control}
                         label='Giới tính'
@@ -177,6 +179,7 @@ export default function PassengerForm({
                     </div>
                     {/* Quốc tịch */}
                     <SelectField
+                        isLabel
                         name='nationality'
                         control={control}
                         label='Quốc tịch'
@@ -186,6 +189,7 @@ export default function PassengerForm({
                     />
                     {/* Loại hành khách */}
                     <SelectField
+                        isLabel
                         name='passenger_type'
                         control={control}
                         label='Loại hành khách'
@@ -202,7 +206,7 @@ export default function PassengerForm({
                         type='text'
                         name='citizen_id'
                         classNameError='text-red-500 text-[14px] mt-[2px] min-h-[20px]'
-                        classNameInput='mt-2 w-full outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[7px] px-[12px] placeholder:text-[14px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]'
+                        classNameInput='mt-2 w-full outline-none border-[1px] border-[#cdcdcd] rounded-[4px] py-[8px] px-[12px] placeholder:text-[14px] text-black focus:border-blue-400 transition duration-300 ease-in text-[15px]'
                         errorMessage={errors.citizen_id?.message}
                         disabled={!isEditing}
                     />
@@ -221,6 +225,7 @@ export default function PassengerForm({
                     />
                     {/* Nơi cấp hộ chiếu */}
                     <SelectField
+                        isLabel
                         name='passport_issuing_country'
                         control={control}
                         label='Nơi cấp hộ chiếu'
@@ -230,7 +235,7 @@ export default function PassengerForm({
                     />
                     {/* Ngày hết hạn hộ chiếu */}
                     <div>
-                        <label htmlFor='passport_expiry' className='block text-sm font-medium text-gray-700'>
+                        <label htmlFor='passport_expiry' className='block text-base font-medium text-gray-700'>
                             Ngày hết hạn hộ chiếu
                         </label>
                         <input
