@@ -28,6 +28,7 @@ interface BookingDetailModalProps {
     isOpen: boolean
     onClose: () => void
     bookingReference: number | null
+    isAdmin?: boolean
 }
 
 // Kiểu dữ liệu cho chuyến bay đã được nhóm
@@ -108,7 +109,7 @@ const getStatusBadge = (status: string) => {
 }
 
 // Component chính
-export default function BookingDetailModal({ isOpen, onClose, bookingReference }: BookingDetailModalProps) {
+export default function BookingDetailModal({ isOpen, onClose, bookingReference, isAdmin }: BookingDetailModalProps) {
     const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
     const queryClient = useQueryClient()
 
@@ -480,8 +481,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                             Đóng
                         </button>
 
-                        {/* Nút Hủy (Chỉ hiển thị khi vé chưa bị hủy và không phải đang chờ hủy) */}
-                        {booking && ['pending', 'confirmed'].includes(booking.status) && (
+                        {!isAdmin && booking && ['pending', 'confirmed'].includes(booking.status) && (
                             <button
                                 onClick={() => setIsConfirmCancelOpen(true)}
                                 disabled={cancelMutation.isPending}

@@ -1,3 +1,4 @@
+import BestFlightDeals from '~/components/BestFlightDeals/BestFlightDeals'
 import DomesticFlights from '~/components/DomesticFlights/DomesticFlights'
 import PromotionHome from '~/components/PromotionHome'
 
@@ -16,7 +17,7 @@ export default function Home() {
                     <PromotionHome />
                 </div>
 
-                <DomesticFlights />
+                <BestFlightDeals />
             </div>
         </div>
     )

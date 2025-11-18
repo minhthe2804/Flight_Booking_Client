@@ -171,11 +171,11 @@ export default function FlightTable({
 
                                     {/* THÊM MỚI: Cột Ghế C (Lấy từ API) */}
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {flight.Aircraft.business_seats}
+                                        {flight.bus_seats_available} / {flight.bus_seats_total}
                                     </td>
                                     {/* THÊM MỚI: Cột Ghế E (Lấy từ API) */}
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                        {flight.Aircraft.economy_seats}
+                                        {flight.eco_seats_available} / {flight.eco_seats_total}
                                     </td>
 
                                     <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>

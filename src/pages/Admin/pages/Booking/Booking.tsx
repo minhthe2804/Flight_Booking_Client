@@ -11,11 +11,14 @@ import Paginate from '~/components/Pagination'
 import BookingDetailModal from '~/pages/Reservation/components/BookingDetailModal/BookingDetailModal'
 import BookingTable from './BookingTable/BookingTable'
 import AdminCancelModal from './AdminCancelModal/AdminCancelModal'
+import { isNil, omitBy } from 'lodash'
+import { createSearchParams, Navigate, useNavigate } from 'react-router-dom'
+import { path } from '~/constants/path'
 
 export default function AdminBookingPage() {
     const queryClient = useQueryClient()
     const queryConfig = useFlightQueryConfig()
-
+    const navigate = useNavigate()
     // State cho Modals
     const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -42,7 +45,7 @@ export default function AdminBookingPage() {
         queryFn: () => bookingApi.getBookings({ status: 'pending_cancellation', limit: '100' }).then((res) => res.data),
         staleTime: 1000 * 30 // Refresh mỗi 30s
     })
-    const cancelRequests = requestsData?.data || [] as any
+    const cancelRequests = requestsData?.data || ([] as any)
 
     // === MUTATION: CẬP NHẬT TRẠNG THÁI (Duyệt hủy / Từ chối) ===
     const updateStatusMutation = useMutation({
@@ -89,13 +92,29 @@ export default function AdminBookingPage() {
         }
     }
 
+    // Xử lý tìm kiếm từ Bảng
+    const handleSearch = (value: string) => {
+        const newParams = {
+            ...queryConfig,
+            page: '1', // Reset về trang 1 khi tìm kiếm
+            limit: '10',
+            search: value // Map search value vào booking_code
+        }
+        const cleanedParams = omitBy(newParams, (v) => isNil(v) || v === '')
+        navigate({
+            pathname: path.adminBooking,
+            search: createSearchParams(cleanedParams as any).toString()
+        })
+    }
+
     // (Có thể thêm nút "Từ chối hủy" nếu cần, gọi mutation với status='cancellation_rejected')
     useEffect(() => {
         refetch()
     })
+
     return (
         <div className='max-w-[1278px] mx-auto py-8 px-4 space-y-10'>
-            <h1 className='text-3xl font-bold text-gray-900 text-center'>Quản lý Đặt chỗ & Hoàn vé</h1>
+            <h1 className='text-3xl font-bold text-gray-900 text-center'>Quản lý Đặt chỗ</h1>
 
             {/* --- BẢNG 1: TẤT CẢ ĐẶT CHỖ --- */}
             <div className='space-y-4'>
@@ -109,6 +128,7 @@ export default function AdminBookingPage() {
                     isLoading={isLoadingAll}
                     onViewDetail={handleViewDetail}
                     onCancel={handleOpenCancel}
+                    onSearch={handleSearch}
                 />
 
                 {pagination && pagination.totalPages > 1 && (
@@ -149,6 +169,7 @@ export default function AdminBookingPage() {
 
             {/* Modal Xem Chi Tiết */}
             <BookingDetailModal
+                isAdmin
                 isOpen={isDetailOpen}
                 onClose={() => setIsDetailOpen(false)}
                 bookingReference={selectedBookingId as number}

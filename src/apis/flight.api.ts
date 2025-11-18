@@ -47,6 +47,10 @@ export interface Flight {
     ArrivalAirport: Airport
     baggage_services: BaggageService[]
     meal_services: MealService[]
+    bus_seats_available?: number
+    bus_seats_total?: number
+    eco_seats_available?: number
+    eco_seats_total?: number
 }
 
 // --- KIỂU DỮ LIỆU (CHO FORM PAYLOAD) ---

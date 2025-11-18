@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
     faEye,
@@ -8,7 +8,9 @@ import {
     faTimesCircle,
     faExclamationCircle,
     faSpinner,
-    faCheckDouble
+    faCheckDouble,
+    faSearch,
+    faTimes
 } from '@fortawesome/free-solid-svg-icons'
 import { formatCurrencyVND, formatDateTime } from '~/utils/utils'
 import { Booking } from '~/apis/bookingadmin.api'
@@ -19,6 +21,7 @@ interface BookingTableProps {
     onViewDetail: (id: number) => void
     onCancel: (id: number) => void
     adminTable?: boolean
+    onSearch?: (value: string) => void
 }
 
 // Helper hiển thị Badge
@@ -65,7 +68,25 @@ const getStatusBadge = (status: string) => {
     }
 }
 
-export default function BookingTable({ bookings, isLoading, onViewDetail, onCancel,adminTable }: BookingTableProps) {
+export default function BookingTable({
+    bookings,
+    isLoading,
+    onViewDetail,
+    onCancel,
+    adminTable,
+    onSearch
+}: BookingTableProps) {
+    const [keyword, setKeyword] = useState('')
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (onSearch) onSearch(keyword)
+    }
+
+    const handleClearSearch = () => {
+        setKeyword('')
+        if (onSearch) onSearch('')
+    }
     if (isLoading)
         return (
             <div className='p-10 text-center'>
@@ -75,6 +96,32 @@ export default function BookingTable({ bookings, isLoading, onViewDetail, onCanc
 
     return (
         <div className='bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200'>
+            {/* --- THANH TÌM KIẾM (Nằm góc phải) --- */}
+            {onSearch && (
+                <div className='px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-end'>
+                    <form onSubmit={handleSearchSubmit} className='relative w-full max-w-xs'>
+                        <input
+                            type='text'
+                            className='w-full text-black pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all'
+                            placeholder='Tìm theo mã đặt chỗ...'
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                        />
+                        <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                            <FontAwesomeIcon icon={faSearch} className='text-gray-400' />
+                        </div>
+                        {keyword && (
+                            <button
+                                type='button'
+                                onClick={handleClearSearch}
+                                className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer'
+                            >
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        )}
+                    </form>
+                </div>
+            )}
             <div className='overflow-x-auto'>
                 <table className='min-w-full divide-y divide-gray-200'>
                     <thead className='bg-gray-50'>
