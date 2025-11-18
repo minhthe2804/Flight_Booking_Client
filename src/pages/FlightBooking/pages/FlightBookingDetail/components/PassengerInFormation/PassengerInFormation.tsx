@@ -36,7 +36,6 @@ export default function PassengerInFormation({
     index,
     passenger
 }: PassengerInFormationFromProps) {
-    
     const { data: countriesData } = useQuery({
         queryKey: ['countries'],
         queryFn: () => countryApi.getCountriesUser().then((res) => res.data.data),
@@ -123,6 +122,7 @@ export default function PassengerInFormation({
                     </div>
                     <div>
                         <SelectField
+                            isInfo
                             name={`passengers.${index}.nationality`}
                             control={control}
                             label='Quốc tịch'

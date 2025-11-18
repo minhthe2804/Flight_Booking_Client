@@ -20,6 +20,10 @@ export interface FlightQueryConfig {
     origin_departure_code?: string
     origin_arrival_code?: string
 
+    // SỬA: Thêm (dùng cho Lọc)
+    departure_airport_id?: string
+    arrival_airport_id?: string
+
     passenger_id?: string
     passenger_type?: string
 
@@ -48,6 +52,14 @@ export interface FlightQueryConfig {
 
     airline_code?: string
     airline_name?: string
+
+    flight_number?: string
+    status?: string
+    departure_date_from?: string // (UI: Từ ngày)
+    departure_date_to?: string // (UI: Đến ngày)
+    sortBy?: string
+    order?: 'asc' | 'desc' | string
+    flight_type?: string
 }
 
 export default function useFlightQueryConfig(): FlightQueryConfig {
@@ -60,6 +72,8 @@ export default function useFlightQueryConfig(): FlightQueryConfig {
 
         departure_airport_code: searchParams.get('departure_airport_code'),
         arrival_airport_code: searchParams.get('arrival_airport_code'),
+        departure_airport_id: searchParams.get('departure_airport_id'),
+        arrival_airport_id: searchParams.get('arrival_airport_id'),
         departure_date: searchParams.get('departure_date'),
         return_date: searchParams.get('return_date'),
         adults: searchParams.get('adults'),
@@ -98,7 +112,15 @@ export default function useFlightQueryConfig(): FlightQueryConfig {
         is_active: searchParams.get('is_active'),
 
         airline_code: searchParams.get('airline_code'),
-        airline_name: searchParams.get('airline_name')
+        airline_name: searchParams.get('airline_name'),
+
+        flight_number: searchParams.get('flight_number'),
+        status: searchParams.get('status'),
+        departure_date_from: searchParams.get('departure_date_from'),
+        departure_date_to: searchParams.get('departure_date_to'),
+        sortBy: searchParams.get('sortBy'),
+        order: searchParams.get('order'),
+        flight_type: searchParams.get('flight_type')
     }
 
     // Kết quả trả về sẽ có adults/children/infants là string | undefined

@@ -68,7 +68,7 @@ export default function AdminAirportPage() {
         staleTime: 1000 * 60
     })
     const airports = airportsData?.data || []
-    const pagination = airportsData?.data.meta?.pagination
+    const pagination = airportsData?.meta?.pagination
 
     // --- 5. MUTATIONS (Thêm/Sửa/Xóa) ---
     const createAirportMutation = useMutation({

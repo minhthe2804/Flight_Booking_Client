@@ -23,6 +23,7 @@ Với range = 2 áp dụng cho khoảng cách đầu, cuối và xung quanh curr
 
 const RANGE = 2 // Khoảng cách xung quanh trang hiện tại
 export default function Paginate({ queryConfig, pageSize }: Props) {
+    console.log(pageSize)
     // SỬA 1: Lấy 'pathname' động từ hook
     const location = useLocation()
 

@@ -27,10 +27,10 @@ import { AppContext } from '~/contexts/app.context'
 import { FlightBookingData } from '../FlightBookingDetail/FlightBookingDetail'
 import { flightServices } from '~/apis/flightServices.api'
 import { FlightServiceModal } from '~/pages/SearchFlight/components/FlightServiceModal'
-import { Promotion } from '~/types/promotion'
 import { clearAfterZaloPayLS, clearLS } from '~/utils/auth'
 import { path } from '~/constants/path'
 import { zalopayApi } from '~/apis/zalopay.api'
+import { Promotion } from '~/types/promotion'
 
 // --- Các thành phần chung ---
 interface ContactInfoPayload {
@@ -131,7 +131,7 @@ export default function FlightBookingPayment() {
         queryFn: () => promotionApi.getPromotion().then((res) => res.data),
         staleTime: 1000 * 60 * 10
     })
-    const availablePromotions: Promotion[] = promoData?.data || []
+    const availablePromotions: Promotion[] = promoData?.data || [] as any
 
     // 1. Lấy hành lý chuyến đi
     const { data: departureBaggageServices, isLoading: isLoadingDepBaggageServices } = useQuery({
@@ -393,7 +393,7 @@ export default function FlightBookingPayment() {
             passport_number: formPassenger.passportNumber,
             citizen_id: formPassenger.citizen_id,
             passport_expiry: formatDateForAPI(formPassenger.passport_expiry),
-            passport_issuing_country: formPassenger.passport_expiry
+            passport_issuing_country: formPassenger.passport_issuing_country
         }
     })
 

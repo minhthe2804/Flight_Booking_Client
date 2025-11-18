@@ -64,7 +64,7 @@ export const formatDateForAPI = (dateInput: Date | string | undefined | null): s
     const month = (date.getMonth() + 1).toString().padStart(2, '0') // +1 vì tháng 0-11
     const day = date.getDate().toString().padStart(2, '0')
 
-    return `${day}-${month}-${year}`
+    return `${year}-${month}-${day}`
 }
 
 export const formatFlightTimeOnly = (isoString: string, locale = 'vi-VN') => {

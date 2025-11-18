@@ -22,6 +22,7 @@ interface SelectFieldProps<T extends FieldValues> {
     disabled?: boolean
     countryApi?: boolean | undefined
     isLabel?: boolean
+    isInfo?: boolean
 }
 
 const SelectField = <T extends FieldValues>({
@@ -33,6 +34,7 @@ const SelectField = <T extends FieldValues>({
     options = [],
     countryApi,
     isLabel,
+    isInfo,
     ...rest
 }: SelectFieldProps<T>) => {
     return (
@@ -41,7 +43,7 @@ const SelectField = <T extends FieldValues>({
             name={name}
             control={control}
             render={({ field, fieldState: { error } }) => (
-                <div className={`${isLabel ? 'mt-1' : ''}`}>
+                <div className={`${isLabel || isInfo ? 'mt-1' : ''}`}>
                     <label
                         htmlFor={name}
                         className={`block ${isLabel ? 'text-base' : 'text-sm'} font-medium text-gray-700 ${isLabel ? '' : 'mb-1'} `}

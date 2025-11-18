@@ -12,18 +12,17 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { bookingApi } from '~/apis/booking.api'
-import { BookingDetail, BookingDetailItem } from '~/types/reservation.type'
+import { BookingDetailItem } from '~/types/reservation.type'
 import {
     formatCurrencyVND,
     formatDateTime,
     formatFlightTimeOnly,
-    formatDuration,
-    formatDateForAPI,
-    formatDurationLookup
+    formatDurationLookup,
+    formatDateForAPI
 } from '~/utils/utils'
 import { toast } from 'react-toastify'
 import { isAxiosError } from 'axios'
-import CancelBookingModal from '../CancelBookingModal' // Import modal xác nhận
+import CancelBookingModal from '../CancelBookingModal'
 
 interface BookingDetailModalProps {
     isOpen: boolean
@@ -60,6 +59,54 @@ const ModalSkeleton = () => (
     </div>
 )
 
+// Helper: Hiển thị Badge Trạng thái (Đã cập nhật đầy đủ)
+const getStatusBadge = (status: string) => {
+    switch (status) {
+        case 'pending':
+            return (
+                <span className='bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium border border-yellow-200 whitespace-nowrap'>
+                    Chờ thanh toán
+                </span>
+            )
+        case 'confirmed':
+            return (
+                <span className='bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium border border-green-200 whitespace-nowrap'>
+                    Đã xác nhận
+                </span>
+            )
+        case 'completed':
+            return (
+                <span className='bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium border border-blue-200 whitespace-nowrap'>
+                    Đã hoàn thành
+                </span>
+            )
+        case 'cancelled':
+            return (
+                <span className='bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium border border-gray-200 whitespace-nowrap'>
+                    Đã hủy
+                </span>
+            )
+        case 'pending_cancellation':
+            return (
+                <span className='bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium border border-orange-200 whitespace-nowrap'>
+                    Chờ hủy vé
+                </span>
+            )
+        case 'cancellation_rejected':
+            return (
+                <span className='bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium border border-red-200 whitespace-nowrap'>
+                    Từ chối hủy
+                </span>
+            )
+        default:
+            return (
+                <span className='bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium border border-gray-200 whitespace-nowrap'>
+                    {status}
+                </span>
+            )
+    }
+}
+
 // Component chính
 export default function BookingDetailModal({ isOpen, onClose, bookingReference }: BookingDetailModalProps) {
     const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
@@ -79,7 +126,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
     })
     const booking = bookingDetailData?.data.data
 
-    // 2. Logic Hủy vé (đã chuyển vào đây)
+    // 2. Logic Hủy vé
     const cancelMutation = useMutation({
         mutationFn: (data: { bookingId: number; reason: string }) =>
             bookingApi.cancelBooking(data.bookingId, data.reason),
@@ -89,8 +136,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
             queryClient.invalidateQueries({ queryKey: ['myBookings'] })
             queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingReference] })
             setIsConfirmCancelOpen(false) // Đóng modal xác nhận
-            // Tự động đóng modal chi tiết sau khi hủy thành công
-            // onClose() // Bỏ comment nếu muốn tự động đóng
         },
         onError: (error) => {
             if (isAxiosError(error)) {
@@ -108,7 +153,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
         }
     }
 
-    // 3. Xử lý nhóm dữ liệu (giống trang Lookup)
+    // 3. Xử lý nhóm dữ liệu
     const groupedFlights = useMemo((): GroupedFlight[] => {
         if (!booking?.BookingDetails) return []
 
@@ -121,7 +166,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                     passengers: []
                 })
             }
-            flightMap.get(flightId)!.passengers.push(item)
+            flightMap.get(flightId)!.passengers.push(item as any)
         })
         return Array.from(flightMap.values())
     }, [booking])
@@ -140,36 +185,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
 
     // 4. Render
     if (!isOpen) return null
-
-    // Trạng thái badge
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return (
-                    <span className='bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium'>
-                        Đã xác nhận
-                    </span>
-                )
-            case 'pending':
-                return (
-                    <span className='bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium'>
-                        Chờ thanh toán
-                    </span>
-                )
-            case 'cancelled':
-                return (
-                    <span className='bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium'>
-                        Đang chờ xác nhận
-                    </span>
-                )
-            default:
-                return (
-                    <span className='bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium'>
-                        {status}
-                    </span>
-                )
-        }
-    }
 
     return (
         <Fragment>
@@ -242,12 +257,25 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                             <span className='text-gray-500'>Số điện thoại: </span>
                                             <strong className='text-gray-900'>{booking.contact_phone}</strong>
                                         </div>
-                                        {booking.status === 'cancelled' && (
-                                            <div className='col-span-2'>
+                                        {(booking.status === 'cancelled' ||
+                                            booking.status === 'cancellation_rejected') && (
+                                            <div className='col-span-2 bg-red-50 p-2 rounded mt-2 border border-red-100'>
                                                 <span className='text-gray-500'>Lý do hủy: </span>
                                                 <strong className='text-red-600'>
-                                                    {booking.cancellation_reason || 'Đang chờ xử lý'}
+                                                    {booking.cancellation_reason || 'Không có lý do cụ thể'}
                                                 </strong>
+                                            </div>
+                                        )}
+                                        {booking.status === 'pending_cancellation' && (
+                                            <div className='col-span-2 bg-orange-50 p-2 rounded mt-2 border border-orange-100'>
+                                                <span className='text-orange-800 font-medium'>
+                                                    Yêu cầu hủy đang được xử lý.
+                                                </span>
+                                                {booking.cancellation_reason && (
+                                                    <p className='text-sm text-gray-600 mt-1'>
+                                                        Lý do: {booking.cancellation_reason}
+                                                    </p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -300,7 +328,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                                         <FontAwesomeIcon icon={faPlaneUp} className='mx-2' />
                                                         <hr className='flex-grow border-t-2 border-dotted' />
                                                     </div>
-                                                    <div className='text-xs text-gray-500'>{/* (Bay thẳng) */}</div>
                                                 </div>
                                                 {/* Hạ cánh */}
                                                 <div className='flex-1'>
@@ -322,6 +349,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                     ))}
                                 </div>
 
+                                {/* --- 3. Thông tin hành khách --- */}
                                 <div>
                                     <h4 className='text-base font-semibold text-gray-700 flex items-center mb-3'>
                                         <FontAwesomeIcon icon={faUser} className='mr-2 text-blue-500' />
@@ -391,19 +419,19 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                                 Giá vé ({uniquePassengers.length} khách)
                                             </span>
                                             <span className='font-medium text-gray-800'>
-                                                {formatCurrencyVND(Number(booking.base_amount))}){' '}
+                                                {formatCurrencyVND(Number(booking.base_amount))}
                                             </span>
                                         </div>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-600'>Phí hành lý</span>
                                             <span className='font-medium text-gray-800'>
-                                                {formatCurrencyVND(Number(booking.baggage_fees))}){' '}
+                                                {formatCurrencyVND(Number(booking.baggage_fees))}
                                             </span>
                                         </div>
                                         <div className='flex justify-between'>
                                             <span className='text-gray-600'>Phí suất ăn</span>
                                             <span className='font-medium text-gray-800'>
-                                                {formatCurrencyVND(Number(booking.meal_fees))}){' '}
+                                                {formatCurrencyVND(Number(booking.meal_fees))}
                                             </span>
                                         </div>
                                         <div className='flex justify-between'>
@@ -424,7 +452,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                         <div className='flex justify-between font-bold text-base'>
                                             <span className='text-gray-900'>Tổng cộng</span>
                                             <span className='text-orange-600'>
-                                                {formatCurrencyVND(Number(booking.final_amount))}){' '}
+                                                {formatCurrencyVND(Number(booking.final_amount))}
                                             </span>
                                         </div>
                                         <div className='flex justify-between text-sm'>
@@ -452,8 +480,8 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                             Đóng
                         </button>
 
-                        {/* Nút Hủy (Chỉ hiển thị khi vé chưa bị hủy) */}
-                        {booking && booking.status !== 'cancelled' && (
+                        {/* Nút Hủy (Chỉ hiển thị khi vé chưa bị hủy và không phải đang chờ hủy) */}
+                        {booking && ['pending', 'confirmed'].includes(booking.status) && (
                             <button
                                 onClick={() => setIsConfirmCancelOpen(true)}
                                 disabled={cancelMutation.isPending}
@@ -464,7 +492,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference }
                                 ) : (
                                     <FontAwesomeIcon icon={faTrash} className='mr-2' />
                                 )}
-                                Hủy đặt chỗ
+                                Yêu cầu hủy đặt chỗ
                             </button>
                         )}
                     </div>

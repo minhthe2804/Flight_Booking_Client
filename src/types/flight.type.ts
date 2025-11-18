@@ -1,3 +1,5 @@
+import { FlightQueryConfig } from '~/hooks/useSearchFlightQueryConfig'
+
 export interface Airline {
     id: number
     name: string
@@ -53,3 +55,19 @@ export interface FlightListResponse {
     }
     timestamp: string
 }
+
+export type FlightFilter = Pick<
+    FlightQueryConfig,
+    | 'page'
+    | 'limit'
+    | 'flight_number'
+    | 'status'
+    | 'airline_id'
+    | 'flight_type'
+    | 'departure_airport_id'
+    | 'arrival_airport_id'
+    | 'departure_date_from'
+    | 'departure_date_to'
+    | 'sortBy'
+    | 'order'
+>

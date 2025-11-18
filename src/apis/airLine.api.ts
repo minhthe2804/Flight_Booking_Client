@@ -17,8 +17,7 @@ export interface Airline {
     is_active: boolean
     class_type: 'economy' | 'business'
     ServicePackages: ApiServicePackage[] // API trả về (PascalCase, string JSON)
-    service_packages?:ApiServicePackage[]
-
+    service_packages:ApiServicePackage[]
     Country?: Country
 }
 

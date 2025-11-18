@@ -170,7 +170,7 @@ export interface BookingDetail {
     discount_percentage: string
     tax_amount: string
     final_amount: string
-    status: 'confirmed' | 'pending' | 'cancelled'
+    status: 'confirmed' | 'pending' | 'cancelled' | 'cancellation_rejected' | 'pending_cancellation'
     payment_status: 'paid' | 'unpaid'
     cancellation_reason: null | string
     trip_type: string

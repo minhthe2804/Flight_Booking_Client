@@ -482,6 +482,74 @@ export const countrySchema = yup.object({
         .uppercase()
 })
 
+// Schema cho 1 Dịch vụ Hành lý (lồng nhau)
+const baggageServiceSchema = yup.object({
+    baggage_service_id: yup.number().optional(), // ID (nếu đang sửa)
+    weight_kg: yup.number().min(0).required('Số kg là bắt buộc').typeError('Phải là số'),
+    price: yup.number().min(0).required('Giá là bắt buộc').typeError('Phải là số'),
+    description: yup.string().required('Mô tả là bắt buộc')
+})
+
+// Schema cho 1 Dịch vụ Suất ăn (lồng nhau)
+const mealServiceSchema = yup.object({
+    meal_service_id: yup.number().optional(), // ID (nếu đang sửa)
+    meal_name: yup.string().required('Tên suất ăn là bắt buộc'),
+    meal_description: yup.string().required('Mô tả là bắt buộc'),
+    price: yup.number().min(0).required('Giá là bắt buộc').typeError('Phải là số'),
+    is_vegetarian: yup.boolean().default(false),
+    is_halal: yup.boolean().default(false)
+})
+
+// Schema cho Form Chuyến bay (chính)
+export const flightFormSchema = yup.object({
+    flight_id: yup.number().defined().default(0), // (Dùng cho Sửa)
+
+    // Thông tin cơ bản
+    airline_id: yup
+        .number()
+        .positive('Hãng hàng không là bắt buộc')
+        .required('Hãng hàng không là bắt buộc')
+        .typeError('Hãng bay là bắt buộc'),
+    aircraft_id: yup
+        .number()
+        .positive('Máy bay là bắt buộc')
+        .required('Máy bay là bắt buộc')
+        .typeError('Máy bay là bắt buộc'),
+    flight_type: yup.string().required('Loại chuyến bay là bắt buộc'),
+    status: yup.string().required('Trạng thái là bắt buộc'),
+
+    // Lộ trình
+    departure_airport_id: yup
+        .number()
+        .positive('Sân bay đi là bắt buộc')
+        .required('Sân bay đi là bắt buộc')
+        .typeError('Sân bay đi là bắt buộc'),
+    arrival_airport_id: yup
+        .number()
+        .positive('Sân bay đến là bắt buộc')
+        .required('Sân bay đến là bắt buộc')
+        .typeError('Sân bay đến là bắt buộc')
+        .notOneOf([yup.ref('departure_airport_id')], 'Sân bay đến không được trùng sân bay đi'),
+
+    departure_time: yup.string().required('Thời gian đi là bắt buộc'),
+    arrival_time: yup
+        .string()
+        .required('Thời gian đến là bắt buộc')
+        .test('is-after-departure', 'Giờ đến phải sau giờ đi', function (value) {
+            const { departure_time } = this.parent
+            if (!departure_time || !value) return true
+            return new Date(value) > new Date(departure_time)
+        }),
+
+    // Giá vé
+    economy_price: yup.number().min(0).required('Giá Economy là bắt buộc').typeError('Giá phải là số'),
+    business_price: yup.number().min(0).required('Giá Business là bắt buộc').typeError('Giá phải là số'),
+
+    // Dịch vụ
+    baggage_services: yup.array().of(baggageServiceSchema).required(),
+    meal_services: yup.array().of(mealServiceSchema).required()
+})
+
 export type Schema = yup.InferType<typeof schema>
 export type UserSchema = yup.InferType<typeof userSchema>
 export type PassportFormData = yup.InferType<typeof passportSchema>
@@ -499,3 +567,4 @@ export type ContactAdminSchema = yup.InferType<typeof contactAdminSchema>
 export type PromotionAdminSchema = yup.InferType<typeof promotionAdminSchema>
 export type AirlineFormSchema = yup.InferType<typeof airlineFormSchema>
 export type CountryFormData = yup.InferType<typeof countrySchema>
+export type FlightFormData = yup.InferType<typeof flightFormSchema>

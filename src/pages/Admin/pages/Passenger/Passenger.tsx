@@ -67,7 +67,7 @@ export default function AdminPassengerPage() {
 
     // SỬA: Truy cập đúng
     const passengers = passengersData?.data || []
-    const pagination = passengersData?.data?.meta?.pagination
+    const pagination = passengersData?.meta?.pagination
 
     const updatePassengerMutation = useMutation({
         mutationFn: (data: Passenger) => passengerApi.updatePassenger(data.passenger_id, data),

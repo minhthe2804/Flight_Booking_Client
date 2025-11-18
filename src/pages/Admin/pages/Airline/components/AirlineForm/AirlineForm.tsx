@@ -56,7 +56,7 @@ export const mockServices: ServiceFeature[] = [
         type: 'ticket_refund',
         value: 75,
         unit: '%',
-        description: 'Hoàn [X]% giá vé (0% = Không hoàn vé)'
+        description: 'Hoàn [X]% giá vé'
     },
     {
         service_id: 5,
@@ -64,7 +64,7 @@ export const mockServices: ServiceFeature[] = [
         type: 'insurance',
         value: 1,
         unit: null,
-        description: 'Có bảo hiểm du lịch (1 = Có, 0 = Không)'
+        description: 'Có bảo hiểm du lịch'
     }
 ]
 
@@ -298,7 +298,7 @@ export default function AirlineForm({
     useEffect(() => {
         if (editingAirline) {
             // Chuyển đổi API (ServicePackages) sang Form (service_packages)
-            const formattedPackages = editingAirline.ServicePackages?.map((pkg) => {
+            const formattedPackages = editingAirline.service_packages?.map((pkg) => {
                 let parsedBenefits: ServiceFeature[] = [] // SỬA: Đổi tên
                 try {
                     // 1. Parse chuỗi JSON

@@ -58,7 +58,7 @@ export default function AdminAirlinePage() {
         staleTime: 1000 * 60
     })
     const airlines = airlinesData?.data || []
-    const pagination = airlinesData?.data?.meta?.pagination
+    const pagination = airlinesData?.meta?.pagination
 
     // --- 5. MUTATIONS (Thêm/Sửa/Xóa) ---
     const createAirlineMutation = useMutation({

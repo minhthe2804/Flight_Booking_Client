@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
 // SỬA: Thêm faInfoCircle
-import { faTrash, faCheckCircle, faTimesCircle, faInfoCircle, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faInfoCircle, faSpinner } from '@fortawesome/free-solid-svg-icons'
 // SỬA: Import Airline (chi tiết) và AirlineSummary (tóm tắt)
 
 import { useMutation } from '@tanstack/react-query'
@@ -16,7 +16,7 @@ import { Airline, airlineApi, AirlineSummary } from '~/apis/airLine.api'
 // SỬA: Import Modal mới
 
 interface AirlineTableProps {
-    airlines: AirlineSummary[] // SỬA: Dùng kiểu tóm tắt (từ List)
+    airlines: AirlineSummary[] | any // SỬA: Dùng kiểu tóm tắt (từ List)
     isLoading: boolean
     onEdit: (airline: Airline) => void
     onDelete: (id: number) => void

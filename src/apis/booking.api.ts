@@ -86,7 +86,6 @@ export const bookingApi = {
         })
     },
      getBookingInfomation: (booking_id: number) => {
-    // ✅ SỬA LẠI ĐƯỜNG DẪN API THEO YÊU CẦU CỦA BẠN
     return http.get<BookingDetailResponse>(`/users/bookings/${booking_id}`)
   },
 }

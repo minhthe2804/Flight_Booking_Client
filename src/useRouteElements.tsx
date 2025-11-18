@@ -35,6 +35,7 @@ import Airline from './pages/Admin/pages/Airline'
 import Flight from './pages/Admin/pages/Flight/Flight'
 import FlightBooking from './pages/FlightBooking'
 import GoogleAuthCallback from './components/GoogleAuthCallback/GoogleAuthCallback'
+import AdminBookingPage from './pages/Admin/pages/Booking/Booking'
 
 function ProtectedRoute() {
     const { isAuthenticated } = useContext(AppContext)
@@ -165,6 +166,10 @@ export default function useRouteElements() {
                                 {
                                     path: path.adminFlight,
                                     element: <Flight />
+                                },
+                                {
+                                    path: path.adminBooking,
+                                    element: <AdminBookingPage />
                                 }
                             ]
                         }

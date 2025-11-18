@@ -28,16 +28,6 @@ export type AirportFormData = Omit<Airport, 'Country' | 'airport_id' | 'latitude
 // Kiểu cho toàn bộ response (bao gồm pagination)
 export type AirportListResponse = SuccessResponse<{
     data: Airport[]
-    meta: {
-        pagination: {
-            currentPage: number
-            totalPages: number
-            totalItems: number
-            itemsPerPage: number
-            hasNextPage: boolean
-            hasPrevPage: boolean
-        }
-    }
 }>
 
 // Kiểu cho response chi tiết (Thêm/Sửa)
@@ -138,7 +128,7 @@ export type AirportFilter = {
     airport_name?: string
     city?: string
     country_id?: string
-    airport_type?: string 
+    airport_type?: string
 }
 
 export const airportApi = {
