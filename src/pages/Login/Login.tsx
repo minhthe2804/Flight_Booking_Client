@@ -191,7 +191,7 @@ export default function Login() {
                     </form>
                     <a
                         // Cập nhật URL backend của bạn tại đây (ví dụ: /api/auth/google)
-                        href={`${import.meta.env.VITE_API_URL}/auth/google`}
+                        href={`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/google`}
                         className='w-[400px] mx-auto py-[7px] border border-[#0d89f7] rounded-md cursor-pointer mt-2 flex items-center justify-center gap-2'
                     >
                         <FontAwesomeIcon icon={faG} className='text-[#0d89f7] text-[20px]' />

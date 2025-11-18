@@ -103,7 +103,7 @@ export default function Header() {
             {isPageHome && (
                 <>
                     <div className='w-full h-[0.5px] bg-slate-200 opacity-10'></div>
-                    <h1 className='mt-[60px] text-[32px] text-white font-semibold text-center'>
+                    <h1 className='mt-[60px] text-[32px] text-white font-semibold text-center uppercase'>
                         App du lịch hàng đầu, một chạm đi bất cứ đâu
                     </h1>
 

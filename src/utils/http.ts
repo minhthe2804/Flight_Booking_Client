@@ -12,11 +12,9 @@ import {
     setRefreshTokenToLS
 } from './auth'
 import { path } from '~/constants/path'
-import config from '~/constants/config'
 import { URL_LOGIN, URL_REFRESH_TOKEN, URL_REGISTER } from '../apis/auth.api'
 import { isAxiosExpiredTokenError, isAxiosUnauthorizedError } from './utils'
 import { ErrorResponse } from '..//types/utils.type'
-import { env } from 'process'
 const API_URL = import.meta.env.VITE_API_URL
 export class Http {
     instance: AxiosInstance
@@ -38,9 +36,12 @@ export class Http {
         })
         this.instance.interceptors.request.use(
             (config) => {
-                if (this.accessToken && config.headers) {
-                    config.headers.Authorization = `Bearer ${this.accessToken}`
-                    return config
+                // Đọc token từ localStorage mỗi lần request để đảm bảo luôn có token mới nhất
+                const token = getAccesTokenFromLS()
+                if (token && config.headers) {
+                    config.headers.Authorization = `Bearer ${token}`
+                    // Cập nhật this.accessToken để đồng bộ
+                    this.accessToken = token
                 }
                 return config
             },
@@ -123,14 +124,17 @@ export class Http {
         )
     }
     private handleRefreshToken() {
+        // Đọc refreshToken từ localStorage để đảm bảo luôn có token mới nhất
+        const refreshToken = getRefreshTokenFromLS()
         return this.instance
             .post<RefreshTokenResponse>(URL_REFRESH_TOKEN, {
-                refresh_token: this.refreshToken
+                refresh_token: refreshToken
             })
             .then((res) => {
                 const { access_token } = res.data.data
                 setAccesTokenToLS(access_token)
                 this.accessToken = access_token
+                this.refreshToken = refreshToken
                 return access_token
             })
             .catch((error) => {

@@ -62,7 +62,7 @@ export default function Register() {
                 reset({ first_name: '', last_name: '', email: '', phone: '', password: '', confirm_password: '' })
                 setIsAuthenticated(true)
                 setProfileFromLS(newData.data.user)
-                navigate(path.home)
+                navigate(path.login)
             },
             onError: (error) => {
                 if (isAxiosUnprocessableEntityError<ErrorResponse<Omit<FormData, 'confirm_password'>>>(error)) {

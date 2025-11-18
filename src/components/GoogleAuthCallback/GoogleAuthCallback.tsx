@@ -2,7 +2,8 @@ import { useContext, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { AppContext } from '~/contexts/app.context'
 import { path } from '~/constants/path'
-import { setAccesTokenToLS } from '~/utils/auth'
+import { setAccesTokenToLS, setRefreshTokenToLS } from '~/utils/auth'
+import { getProfile } from '~/apis/auth.api'
 
 export default function GoogleAuthCallback() {
     const [searchParams] = useSearchParams()
@@ -12,16 +13,35 @@ export default function GoogleAuthCallback() {
     useEffect(() => {
         // 1. Đọc token từ URL
         const accessToken = searchParams.get('accessToken')
-        const refreshToken = searchParams.get('refreshToken') // (Có thể lưu luôn refreshToken nếu backend gửi về)
+        const refreshToken = searchParams.get('refreshToken')
 
-        console.log(accessToken)
+        console.log('AccessToken:', accessToken)
         if (accessToken) {
             // 2. LƯU TOKEN NGAY LẬP TỨC
             // (Quan trọng nhất: lưu token để các API call sau này sử dụng)
             setAccesTokenToLS(accessToken)
+            if (refreshToken) {
+                setRefreshTokenToLS(refreshToken)
+            }
             setIsAuthenticated(true)
 
-            navigate('http://localhost:5000')
+            // 3. LẤY THÔNG TIN PROFILE TỪ BACKEND
+            getProfile()
+                .then((response) => {
+                    const profileData = response.data.data
+                    // Xử lý middle_name có thể null
+                    setProfile({
+                        ...profileData,
+                        middle_name: profileData.middle_name || ''
+                    } as any)
+                })
+                .catch((error) => {
+                    console.error('Error fetching profile:', error)
+                })
+                .finally(() => {
+                    // Navigate về trang chủ sau khi xử lý xong
+                    navigate(path.home)
+                })
         } else {
             // Nếu URL không có accessToken
             // Đây là lý do bạn thấy "No token provided"
