@@ -80,8 +80,7 @@ const FlightSummaryCard: FC<FlightSummaryCardProps> = ({ flightData, passengers,
                 </div>
 
                 <div className='flex items-center mt-4'>
-                    <AirlineLogo />
-                    <div className='ml-3'>
+                    <div className='ml-5'>
                         <p className='text-sm font-semibold'>{flightData.airline}</p>
                         <p className='text-xs text-gray-500'>{flightData.flightClass}</p>
                     </div>

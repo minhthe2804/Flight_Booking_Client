@@ -85,10 +85,10 @@ export default function CancelBookingModal({ isOpen, onClose, onSubmit, isLoadin
                         </Button>
                         <Button
                             type='submit'
-                            className='bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 p-1 rounded-md'
+                            className='bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 p-1 rounded-md flex items-center justify-center'
                             disabled={isLoading}
                         >
-                            {isLoading ? <FontAwesomeIcon icon={faSpinner} spin className='mr-2' /> : null}
+                            <div> {isLoading ? <FontAwesomeIcon icon={faSpinner} spin className='mr-2' /> : null}</div>
                             Xác nhận hủy
                         </Button>
                     </div>
