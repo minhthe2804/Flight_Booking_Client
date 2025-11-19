@@ -43,7 +43,7 @@ export default function AdminAirportPage() {
     // 3. Gọi API lấy danh sách Quốc gia (dùng chung)
     const { data: countriesData, isLoading: isLoadingCountries } = useQuery({
         queryKey: ['countries'],
-        queryFn: () => countryApi.getCountries().then((res) => res.data.data),
+        queryFn: () => countryApi.getCountriesUser().then((res) => res.data.data),
         staleTime: Infinity,
         refetchOnWindowFocus: false
     })
@@ -136,7 +136,7 @@ export default function AdminAirportPage() {
             ...queryConfig, // Giữ lại limit
             ...filters, // Áp dụng filter mới
             page: '1', // Luôn quay về trang 1
-            limit: queryConfig.limit || '5' // SỬA: Giữ limit (hoặc 5)
+            limit: queryConfig.limit || '10' // SỬA: Giữ limit (hoặc 5)
         }
         // Dọn dẹp các giá trị null/undefined/rỗng
         const cleanedParams = omitBy(newParams, (value) => isNil(value) || value === '')
