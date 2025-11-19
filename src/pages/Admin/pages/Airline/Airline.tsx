@@ -45,7 +45,7 @@ export default function AdminAirlinePage() {
     // 1. Gọi API lấy danh sách Quốc gia (dùng chung)
     const { data: countriesData, isLoading: isLoadingCountries } = useQuery({
         queryKey: ['countries'],
-        queryFn: () => countryApi.getCountriesUser().then((res) => res.data.data),
+        queryFn: () => countryApi.getCountries().then((res) => res.data.data),
         staleTime: Infinity,
         refetchOnWindowFocus: false
     })
