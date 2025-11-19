@@ -17,6 +17,7 @@ import { path } from '~/constants/path'
 import useSearchFlights from '~/hooks/useSearchFlight'
 import { useQuery } from '@tanstack/react-query'
 import { airportApi } from '~/apis/airport.api'
+import TrustedBy from '../TrustedBy/TrustedBy'
 
 const cx = classNames.bind(styles)
 // Danh sách mã sân bay phổ biến để hiển thị mặc định
@@ -733,32 +734,7 @@ export default function Header() {
                             </div>
                         </div>
 
-                        {/* Phần "Trusted by" */}
-                        <div className='flex items-center rounded-md bg-white w-[378px] h-[48px] mx-auto mt-6 gap-4 p-2'>
-                            <p className='text-[13px] font-semibold w-[20%] opacity-85 italic'>Trusted by</p>
-                            <div className='flex items-start justify-between gap-3 w-[70%]'>
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627790690-7ea3ee26cb9f3737c4fddf7315ec2517.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627795821-b7a62e0084b1bd545b0ad7d3a4e454e5.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627803111-12b2e6b401b049f4c9d04e635d935b61.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2025/03/18/1742281617235-6d7d971115c1207b1b06a37420356647.jpeg?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627817005-9c5c70219dd7cafb8838d08da8d71d1f.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                            </div>
-                        </div>
+                        <TrustedBy />
                     </div>
                 </>
             )}
