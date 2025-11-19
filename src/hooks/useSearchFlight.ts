@@ -26,7 +26,7 @@ interface UseSearchFlightsReturn {
     today: Date
     maxDate: Date
 }
-const MAX_PASSENGERS = 9 // Giới hạn tổng số hành khách
+const MAX_PASSENGERS = 7 // Giới hạn tổng số hành khách
 
 export default function useSearchFlights(): UseSearchFlightsReturn {
     const navigate = useNavigate()
