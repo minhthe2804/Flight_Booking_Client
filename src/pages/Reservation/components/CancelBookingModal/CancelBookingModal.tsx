@@ -1,5 +1,4 @@
-// (File này được import bởi BookingDetailModal, tôi tạo nó dựa trên logic cũ của bạn)
-import React from 'react'
+
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faSpinner, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'

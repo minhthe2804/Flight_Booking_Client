@@ -1,6 +1,6 @@
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import Input from '~/components/Input'
 import SelectField from '~/components/SelectField'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

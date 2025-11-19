@@ -36,7 +36,6 @@ export const MealModal: React.FC<MealModalProps> = ({
     onSave,
     departureOptions,
     returnOptions,
-    departureFlight,
     returnFlight
 }) => {
     // --- 1. TẤT CẢ HOOKS ĐƯỢC ĐẶT Ở ĐẦU ---
@@ -123,7 +122,7 @@ export const MealModal: React.FC<MealModalProps> = ({
         onClose()
     }
 
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => onClose()
+    const handleBackdropClick = (_e: React.MouseEvent<HTMLDivElement>) => onClose()
     const handleModalClick = (e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()
 
     // --- 3. LỆNH RETURN SỚM (Giữ nguyên) ---

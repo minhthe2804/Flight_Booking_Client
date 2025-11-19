@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Danh sách Logo (Nhân bản để demo hiệu ứng chạy)
 const PARTNER_LOGOS = [

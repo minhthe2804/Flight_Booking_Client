@@ -1,24 +1,16 @@
-import { faCheck, faInfo, faPlaneUp, faSpinner, faTicket } from '@fortawesome/free-solid-svg-icons'
+import { faInfo, faPlaneUp, faSpinner, faTicket } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Button from '~/components/Button'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useMutation } from '@tanstack/react-query'
-import { bookingApi } from '~/apis/booking.api'
+
 import { useState, useMemo } from 'react'
-import { BookingPassengerFlight, Lookup as LookupType, LookupResponse } from '~/types/lookup.type'
+import { BookingPassengerFlight, Lookup as LookupType } from '~/types/lookup.type'
 import { isAxiosError } from 'axios'
 import { toast } from 'react-toastify'
-import {
-    formatCustomDate,
-    formatFlightTimeOnly,
-    formatDuration,
-    formatCurrencyVND,
-    formatDateForAPI,
-    formatDateTime,
-    formatDurationLookup
-} from '~/utils/utils'
+import { formatFlightTimeOnly, formatCurrencyVND, formatDateForAPI, formatDurationLookup } from '~/utils/utils'
 import { lookupApi } from '~/apis/lookup.api'
 
 // 1. Định nghĩa kiểu dữ liệu cho form tìm kiếm

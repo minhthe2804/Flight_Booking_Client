@@ -6,7 +6,6 @@ import {
     PaperAirplaneIcon,
     CalendarDaysIcon,
     ClockIcon,
-    ArrowRightIcon,
     SparklesIcon
 } from '@heroicons/react/24/outline'
 

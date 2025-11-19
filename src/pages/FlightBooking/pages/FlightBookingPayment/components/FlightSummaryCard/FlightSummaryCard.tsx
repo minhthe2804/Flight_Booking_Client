@@ -34,16 +34,6 @@ type FlightSummaryCardProps = {
     priceDetails: PriceDetails
 }
 
-// Component logo VietJet Air (ví dụ)
-const AirlineLogo: FC = () => (
-    <svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
-        <path
-            d='M21.56,12.44,12.44,21.56a1.45,1.45,0,0,1-2.05,0L2.44,13.61a1.45,1.45,0,0,1,0-2.05L11.56,2.44a1.45,1.45,0,0,1,2.05,0l8,8A1.45,1.45,0,0,1,21.56,12.44ZM12,12.69,9.44,15.25,6.19,12,3.31,14.88,12,23.56l8.88-8.88L18.19,12,14.75,15.44Z'
-            fill='#e62624'
-        />
-        <path d='M23.56,12,14.88,3.31,12,6.19l2.56,2.56L12.69,12,15.44,14.75l2.75-2.75,2.69,2.69Z' fill='#fdb913' />
-    </svg>
-)
 
 const FlightSummaryCard: FC<FlightSummaryCardProps> = ({ flightData, passengers, priceDetails }) => {
     return (

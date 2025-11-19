@@ -1,17 +1,7 @@
-import {
-    SubmitHandler,
-    useForm,
-    useFieldArray,
-    Controller,
-    Control,
-    UseFormRegister,
-    FieldErrors,
-    UseFormWatch,
-    UseFormGetValues
-} from 'react-hook-form'
+import { SubmitHandler, useForm, useFieldArray, Control, UseFormRegister, FieldErrors } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import Input from '~/components/Input'
 import SelectField from '~/components/SelectField'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'

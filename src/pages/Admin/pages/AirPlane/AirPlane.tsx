@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
@@ -28,7 +28,7 @@ export default function AdminAircraftPage() {
     const queryConfig = useFlightQueryConfig()
 
     const [filters, setFilters] = useState<AircraftFilter>(() => {
-        const { page, limit, model, airline_id, aircraft_type } = queryConfig as AircraftFilter
+        const { model, airline_id, aircraft_type } = queryConfig as AircraftFilter
         return { model, airline_id, aircraft_type }
     })
 

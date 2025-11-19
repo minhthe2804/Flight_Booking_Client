@@ -1,7 +1,7 @@
 // src/pages/FlightBookingDetail/FlightBookingDetail.tsx
 
 import { useContext, useState } from 'react'
-import { useLocation, useNavigate, Navigate } from 'react-router-dom'
+import {  useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'

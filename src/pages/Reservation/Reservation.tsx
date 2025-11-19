@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { faInfo, faSort, faExclamationTriangle, faSearch, faEye } from '@fortawesome/free-solid-svg-icons'
+import {  faSearch, faEye } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery } from '@tanstack/react-query'
 import Paginate from '~/components/Pagination'
@@ -91,7 +91,6 @@ export default function Reservation() {
     const {
         data: bookingsData,
         isLoading,
-        isError
     } = useQuery({
         queryKey: ['myBookings', page, limit, search],
         queryFn: () => bookingApi.getBookingsHistory({ page, limit, search: search.length > 0 ? search : undefined }),

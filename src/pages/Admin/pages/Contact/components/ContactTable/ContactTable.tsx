@@ -2,7 +2,6 @@ import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Contact } from '~/apis/contact.api' // Import kiểu Contact
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
-import { faTrash, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 
 interface ContactTableProps {
     contacts: Contact[]

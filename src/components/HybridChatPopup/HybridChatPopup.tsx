@@ -10,8 +10,7 @@ import { recommendationsApi } from '~/apis/recommendations.api'
 import { aiChatApi } from '~/apis/aiChat.api'
 import { errorHandlingApi } from '~/apis/errorHandling.api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEllipsis, faPaperPlane, faRobot, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { string } from 'yup'
+import { faPaperPlane, faRobot, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const MAX_MESSAGE_LENGTH = 500
 const CHAT_MODE: 'basic' | 'multi' = 'multi'
@@ -221,7 +220,7 @@ const HybridChatPopup: React.FC<HybridChatPopupProps> = ({ context, contextFamil
 
     const basicChatMutation = useMutation({
         mutationFn: (body: T.ChatBody) => aiChatApi.postBasicChat(body),
-        onSuccess: (data) => addMessage(data.data.data.ai_response, 'bot','travel_advice_response'),
+        onSuccess: (data) => addMessage(data.data.data.ai_response, 'bot', 'travel_advice_response'),
         onError: (e) => addMessage(`Lỗi AI Chat: ${e.message}`, 'bot')
     })
 

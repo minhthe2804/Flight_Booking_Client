@@ -1,7 +1,6 @@
 import { FunnelIcon } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faRotate } from '@fortawesome/free-solid-svg-icons'
-import { useMemo } from 'react'
 import { PromotionFilter } from '~/types/promotion'
 
 interface PromotionFilterCardProps {

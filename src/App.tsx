@@ -3,17 +3,17 @@ import useRouteElements from './useRouteElements'
 import 'react-toastify/dist/ReactToastify.css'
 import HybridChatPopup from './components/HybridChatPopup/HybridChatPopup'
 import { useState } from 'react'
-import * as T from '~/types/aiTypes' // (MỚI) Import types
+import * as T from '~/types/aiTypes'
 
 function App() {
     const routeElements = useRouteElements()
-    const [userContext, setUserContext] = useState<T.UserContext>({
+    const [userContext] = useState<T.UserContext>({
         travel_interest: 'culture and food',
         budget: 'medium',
         duration: '7 days'
     })
 
-    const [userContextFamiLy, setUserContextFamily] = useState<T.UserContext>({
+    const [userContextFamiLy] = useState<T.UserContext>({
         family_composition: {
             adults: 2,
             children: 2,
@@ -24,7 +24,7 @@ function App() {
         budget: 'moderate'
     })
 
-    const [userContextBusiness, setUserContextBusiness] = useState<T.UserContext>({
+    const [userContextBusiness] = useState<T.UserContext>({
         trip_type: 'business',
         meeting_locations: ['CBD', 'Marina Bay'],
         client_entertainment: true,

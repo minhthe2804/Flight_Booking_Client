@@ -1,6 +1,5 @@
 import { createContext, useState } from 'react'
 import { FlightBookingData } from '~/pages/FlightBooking/pages/FlightBookingDetail/FlightBookingDetail'
-import { FlightServiceModal } from '~/pages/SearchFlight/components/FlightServiceModal'
 import { User } from '~/types/user.type'
 import {
     getAccesTokenFromLS,

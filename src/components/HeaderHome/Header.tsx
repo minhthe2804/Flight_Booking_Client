@@ -67,7 +67,7 @@ export default function Header() {
         }
     }, [isRoundTrip, startDate, maxDate, setValue])
 
-    const { data: airportsData, isLoading: isLoadingAirports } = useQuery({
+    const { data: airportsData } = useQuery({
         queryKey: ['airports'],
         queryFn: () => airportApi.getAirport(),
         staleTime: Infinity
@@ -387,7 +387,7 @@ export default function Header() {
                                                         />
                                                         {/* DROPDOWN GỢI Ý ĐIỂM ĐI */}
                                                         {showDepartureOptions && (
-                                                            <div className='absolute z-20 w-full bg-white border rounded-md mt-1 top-[100%] shadow-xl max-h-60 overflow-y-auto mt-2'>
+                                                            <div className='absolute z-20 w-full bg-white border rounded-md top-[100%] shadow-xl max-h-60 overflow-y-auto mt-2'>
                                                                 <p className='text-xs text-gray-500 font-semibold px-3 py-2 bg-gray-50 sticky top-0 border-b'>
                                                                     {!departureValue || departureValue.trim() === ''
                                                                         ? 'SÂN BAY PHỔ BIẾN'

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Link, Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { path } from '~/constants/path'
 
 export default function FlightBooking() {

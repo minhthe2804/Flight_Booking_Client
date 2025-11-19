@@ -1,17 +1,15 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
 import { AxiosError } from 'axios'
-import { useNavigate, createSearchParams, Link } from 'react-router-dom'
+import { useNavigate, createSearchParams } from 'react-router-dom'
 import { omitBy, isNil } from 'lodash'
 
 // Import API và Kiểu
 import { flightApi, Flight, FlightFormData, FlightListResponse } from '~/apis/flight.api'
 
 import { path } from '~/constants/path'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faFilter, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { airlineApi } from '~/apis/airLine.api'
 import { FlightFilter } from '~/types/flight.type'
 import { airportApi } from '~/apis/airport.api'
@@ -35,8 +33,6 @@ export default function AdminFlightPage() {
 
     const [filters, setFilters] = useState<FlightFilter>(() => {
         const {
-            page,
-            limit,
             flight_number,
             status,
             airline_id,

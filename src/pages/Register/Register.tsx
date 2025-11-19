@@ -57,7 +57,7 @@ export default function Register() {
         registerAccountMutation.mutate(body, {
             onSuccess: (data) => {
                 console.log(data)
-                const newData = data.data as AuthResponse
+                const newData = data.data as unknown as AuthResponse
                 toast.success('Bạn đã đăng kí thành công', { autoClose: 3000 })
                 reset({ first_name: '', last_name: '', email: '', phone: '', password: '', confirm_password: '' })
                 setIsAuthenticated(true)

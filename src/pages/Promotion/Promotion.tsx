@@ -105,8 +105,8 @@ export default function Promotion() {
                                         <div>
                                             <p className='text-[13px] font-medium opacity-90'>Giảm</p>
                                             <b className='text-3xl font-bold'>
-                                                {promotion.discount_amount > 0
-                                                    ? formatCurrencyVND(promotion.discount_amount * 1000) // 50.00 -> 50,000 ₫
+                                                {promotion?.discount_amount as number > 0
+                                                    ? formatCurrencyVND(promotion?.discount_amount as number * 1000) // 50.00 -> 50,000 ₫
                                                     : `${promotion.discount_percentage}%`}
                                             </b>
                                         </div>
@@ -137,7 +137,7 @@ export default function Promotion() {
                                             </div>
                                             {/* Nút copy */}
                                             <button
-                                                onClick={() => handleCopy(promotion.code)}
+                                                onClick={() => handleCopy(promotion?.code as string)}
                                                 className={`w-28 h-10 rounded-md font-semibold text-white transition-colors duration-200 flex items-center justify-center gap-2 ${
                                                     copiedCode === promotion.code
                                                         ? 'bg-green-500' // Trạng thái đã copy

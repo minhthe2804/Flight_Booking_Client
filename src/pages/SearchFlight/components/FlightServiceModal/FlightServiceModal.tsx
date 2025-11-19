@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useContext } from 'react'
 import { Flight } from '~/types/searchFlight.type'
-import { formatCurrencyVND, formatCustomDate, formatFlightTimeOnly, formatDuration } from '~/utils/utils'
+import { formatCurrencyVND } from '~/utils/utils'
 import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -58,7 +58,7 @@ export const FlightServiceModal: React.FC<FlightServiceModalProps> = ({
 }) => {
     const navigate = useNavigate()
     // SỬA: Lấy đúng hàm set từ Context
-    const { setFlightBookingData, flightBookingData,setflightServicesData } = useContext(AppContext)
+    const {  flightBookingData,setflightServicesData } = useContext(AppContext)
     const [activeTab, setActiveTab] = useState<'departure' | 'return'>('departure')
 
     // --- 4. GỌI 2 API DỊCH VỤ ---
@@ -83,33 +83,6 @@ export const FlightServiceModal: React.FC<FlightServiceModalProps> = ({
     const availableDepPackages = depPkgData?.data || []
     const availableRetPackages = retPkgData?.data || []
 
-    const depFlightInfo = useMemo(() => {
-        if (!departureFlight) return null
-        return {
-            airline: departureFlight.airline.name,
-            flightNumber: departureFlight.flight_number,
-            departure: departureFlight.departure.airport.code,
-            destination: departureFlight.arrival.airport.code,
-            departureTime: formatFlightTimeOnly(departureFlight.departure.time),
-            arrivalTime: formatFlightTimeOnly(departureFlight.arrival.time),
-            date: formatCustomDate(departureFlight.departure.time?.substring(0, 10)),
-            duration: formatDuration(departureFlight.duration)
-        }
-    }, [departureFlight])
-
-    const retFlightInfo = useMemo(() => {
-        if (!returnFlight) return null
-        return {
-            airline: returnFlight.airline.name,
-            flightNumber: returnFlight.flight_number,
-            departure: returnFlight.departure.airport.code,
-            destination: returnFlight.arrival.airport.code,
-            departureTime: formatFlightTimeOnly(returnFlight.departure.time),
-            arrivalTime: formatFlightTimeOnly(returnFlight.arrival.time),
-            date: formatCustomDate(returnFlight.departure.time?.substring(0, 10)),
-            duration: formatDuration(returnFlight.duration)
-        }
-    }, [returnFlight])
 
     // --- 5. LỌC CÁC GÓI VÉ TỪ API (SỬA LỖI BIẾN) ---
     const activeDepPackages = useMemo(() => {
@@ -212,7 +185,7 @@ export const FlightServiceModal: React.FC<FlightServiceModalProps> = ({
     }, [onClose])
 
     // Handlers (Giữ nguyên)
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => onClose()
+    const handleBackdropClick = (_e: React.MouseEvent<HTMLDivElement>) => onClose()
     const handleModalClick = (e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()
 
     const handleContinue = () => {

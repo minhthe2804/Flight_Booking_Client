@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
@@ -34,7 +34,7 @@ export default function AdminAirportPage() {
     // 2. 'filters' là state nội bộ, chỉ dùng để điền vào form filter
     const [filters, setFilters] = useState<AirportFilter>(() => {
         // Lấy filter từ URL
-        const { page, limit, airport_code, airport_name, city, country_id, airport_type } = queryConfig as AirportFilter
+        const { airport_code, airport_name, city, country_id, airport_type } = queryConfig as AirportFilter
         return { airport_code, airport_name, city, country_id, airport_type }
     })
 

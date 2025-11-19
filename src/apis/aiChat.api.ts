@@ -1,5 +1,4 @@
 import {
-    AdviceBody,
     AdviceResponse,
     ApiResponse,
     BasicApi,

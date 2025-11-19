@@ -2,11 +2,10 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { faChevronRight, faChevronLeft } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+
 
 import { getFlights } from '~/apis/flight.api'
 import { Flight } from '~/types/flight.type'
-import { path } from '~/constants/path'
 import FlightCard from '~/components/FlightCard/FlightCard'
 
 // Skeleton Component

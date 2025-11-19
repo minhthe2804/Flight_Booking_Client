@@ -26,7 +26,6 @@ export default function AirlineFilterCard({
     onFilterReset,
     countries,
     isLoadingCountries,
-    airlines
 }: AirlineFilterCardProps) {
     const countryOptions = useMemo(() => {
         if (!countries) return []
