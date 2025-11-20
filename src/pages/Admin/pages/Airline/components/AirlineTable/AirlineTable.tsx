@@ -20,7 +20,7 @@ interface AirlineTableProps {
     isLoading: boolean
     onEdit: (airline: Airline) => void
     onDelete: (id: number) => void
-    countries: Country[] // Nhận countries để map ID
+    countries: Country[] & { country_name: string } // Nhận countries để map ID
 }
 
 // Component Skeleton Bảng
@@ -175,7 +175,7 @@ export default function AirlineTable({ airlines, isLoading, onEdit, onDelete, co
                                             {airline.airline_code}
                                         </td>
                                         <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-700'>
-                                            {countryMap[airline.country_id] || airline.country_id}
+                                            {countryMap[airline.country_id] || airline.Country.country_name}
                                         </td>
                                       
                                         <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
