@@ -65,7 +65,7 @@ export default function Promotion() {
     return (
         <div>
             <div className='max-w-[1278px] mx-auto py-8 px-4'>
-                <h1 className='text-2xl font-semibold text-gray-900 text-center mb-8'>Thông tin khuyến mãi</h1>
+                <h1 className='text-3xl font-semibold text-gray-900 text-center mb-8'>Thông tin khuyến mãi</h1>
 
                 {/* 4. THÊM LOGIC: Xử lý Loading */}
                 {isLoading && (

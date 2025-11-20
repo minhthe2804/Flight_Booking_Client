@@ -4,7 +4,7 @@ import { path } from '~/constants/path'
 
 export default function FlightBooking() {
     return (
-        <div className='bg-gray-50 min-h-screen pb-20'>
+        <div className=' min-h-screen pb-20'>
             <div className='max-w-[1278px] mx-auto px-4'>
                 {/* --- THANH TIẾN TRÌNH (STEPPER) --- */}
                 <div className='w-full flex items-center mt-8 gap-3 mb-8'>
