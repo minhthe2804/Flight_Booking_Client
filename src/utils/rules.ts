@@ -85,6 +85,14 @@ const getTodayString = () => {
     return today
 }
 
+const getMinPassportExpiryDate = () => {
+    const date = new Date()
+    date.setMonth(date.getMonth() + 6)
+    // Reset giờ về 0 để so sánh chính xác ngày
+    date.setHours(0, 0, 0, 0)
+    return date
+}
+
 export const passportSchema = yup.object({
     passportNumber: yup
         .string()
@@ -94,17 +102,19 @@ export const passportSchema = yup.object({
         .matches(/^[A-Z0-9]+$/, 'Số hộ chiếu chỉ bao gồm chữ cái in hoa và số'),
     passport_issuing_country: yup.string().required('Quốc gia cấp là bắt buộc').max(100, 'Độ dài tối đa là 100 ký tự'),
     passport_expiry: yup
-        .string() // 1. Yêu cầu là string (khớp với component)
-        .required('Vui lòng chọn ngày hết hạn')
+        .string() // 1. Yêu cầu là string
+        .required('Vui lòng chọn ngày hết hạn') // Bắt buộc nhập
         .test(
-            'is-future-date', // Tên của test
-            'Hộ chiếu đã hết hạn', // Message lỗi
+            'is-valid-passport-expiry', // Tên của test
+            'Hộ chiếu phải còn hạn ít nhất 6 tháng', // Message lỗi
             (value) => {
-                if (!value) return false // Nếu rỗng (dù đã .required)
+                if (!value) return false // Nếu rỗng thì lỗi
+
                 // 2. Chuyển chuỗi 'YYYY-MM-DD' thành Date object
                 const expiryDate = new Date(value)
-                // 3. So sánh
-                return expiryDate >= getTodayString()
+
+                // 3. So sánh với ngày hiện tại + 6 tháng
+                return expiryDate >= getMinPassportExpiryDate()
             }
         )
 })

@@ -67,6 +67,7 @@ const PassportForm: React.FC<PassportFormProps> = ({ errors, control, register, 
                         name={`passengers.${index}.passport_expiry`}
                         control={control}
                         label='Ngày hết hạn'
+                        errorMessage={errors?.passport_expiry?.message}
                     />
                 </div>
 
