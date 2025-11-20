@@ -113,6 +113,7 @@ const ChartCard: React.FC<ChartCardProps> = ({
                         >
                             <option value='7days'>7 ngày qua</option>
                             <option value='14days'>14 ngày qua</option>
+                            <option value='1months'>30 ngày qua</option>
                         </select>
                     )}
 

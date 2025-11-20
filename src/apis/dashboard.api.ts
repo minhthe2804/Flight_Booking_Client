@@ -53,7 +53,7 @@ interface AirlineMarketShareData {
     }>
 }
 
-export type MarketSharePeriod = '7days' | '14days'
+export type MarketSharePeriod = '7days' | '14days' | '1months'
 
 interface RevenueTrendData {
     month: number
