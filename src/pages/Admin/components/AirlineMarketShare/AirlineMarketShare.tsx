@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { DashboardApi, MarketSharePeriod } from '~/apis/dashboard.api'
 import ChartCard from '../ChartCard/ChartCard'

@@ -134,10 +134,6 @@ const NestedBenefitArray: React.FC<NestedBenefitArrayProps> = ({
         append(newFeature)
     }
 
-    const handleRemoveFeature = (featureIndex: number) => {
-        removeBenefit(featureIndex)
-    }
-
     // SỬA: Logic khi chọn 1 dịch vụ
     const handleServiceTypeChange = (e: React.ChangeEvent<HTMLSelectElement>, featureIndex: number) => {
         const selectedService = mockServices.find((s) => s.type === e.target.value)
@@ -478,7 +474,7 @@ export default function AirlineForm({
 
                     {/* Nội dung Tabs */}
                     <div className='space-y-6'>
-                        {fieldsByClass.map((pkg, index) => {
+                        {fieldsByClass.map((pkg) => {
                             const trueIndex = fieldIndices.find((f) => f.id === pkg.id)!.index
 
                             return (

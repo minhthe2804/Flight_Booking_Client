@@ -7,7 +7,7 @@ import Input from '~/components/Input'
 import PhoneInput from 'react-phone-number-input'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
-import { faRotate, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faRotate } from '@fortawesome/free-solid-svg-icons'
 import { Contact, ContactFormData } from '~/apis/contact.api'
 
 // --- Dữ liệu mặc định (Trống) ---
@@ -37,7 +37,6 @@ export default function ContactForm({ editingContact, onSubmitForm, onResetForm 
         control,
         handleSubmit,
         reset,
-        watch, // Theo dõi giá trị
         formState: { errors }
     } = useForm<ContactFormData>({
         resolver: yupResolver(contactAdminSchema),

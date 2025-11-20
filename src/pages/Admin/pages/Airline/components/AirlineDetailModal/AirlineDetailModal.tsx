@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react'
+import  { useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimes, faCheckCircle, faTimesCircle, faCube, faPlaneDeparture } from '@fortawesome/free-solid-svg-icons'
+import { faTimes, faCheckCircle, faTimesCircle,  faPlaneDeparture } from '@fortawesome/free-solid-svg-icons'
 
 import { ServiceFeature } from '~/types/airlineServices.type' // Import kiểu ServiceFeature
 import { Country } from '~/apis/airport.api'

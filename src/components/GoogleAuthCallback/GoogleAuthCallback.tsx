@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { AppContext } from '~/contexts/app.context'
 import { path } from '~/constants/path'
-import { setAccesTokenToLS, setRefreshTokenToLS } from '~/utils/auth'
+import { setAccesTokenToLS, setProfileFromLS, setRefreshTokenToLS } from '~/utils/auth'
 import { getProfile } from '~/apis/auth.api'
 
 export default function GoogleAuthCallback() {
@@ -31,6 +31,10 @@ export default function GoogleAuthCallback() {
                     const profileData = response.data.data
                     // Xử lý middle_name có thể null
                     setProfile({
+                        ...profileData,
+                        middle_name: profileData.middle_name || ''
+                    } as any)
+                    setProfileFromLS({
                         ...profileData,
                         middle_name: profileData.middle_name || ''
                     } as any)

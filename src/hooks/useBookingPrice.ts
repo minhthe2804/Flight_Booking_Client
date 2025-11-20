@@ -48,7 +48,7 @@ export const useBookingPrice = ({
     const depBaggageMap = useMemo(() => {
         return baggageOptions.reduce(
             (acc: PriceMap, opt) => {
-                acc[`baggage_${opt.baggage_id}`] = parseFloat(opt.price)
+                acc[`baggage_${opt.baggage_service_id}`] = parseFloat(opt.price)
                 return acc
             },
             { baggage_0: 0 } as PriceMap
@@ -58,7 +58,7 @@ export const useBookingPrice = ({
     const retBaggageMap = useMemo(() => {
         return returnBaggageOptions.reduce(
             (acc: PriceMap, opt) => {
-                acc[`baggage_${opt.baggage_id}`] = parseFloat(opt.price)
+                acc[`baggage_${opt.baggage_service_id}`] = parseFloat(opt.price)
                 return acc
             },
             { baggage_0: 0 } as PriceMap
@@ -67,14 +67,14 @@ export const useBookingPrice = ({
 
     const depMealMap = useMemo(() => {
         return mealOptions.reduce((acc: PriceMap, opt) => {
-            acc[`meal_${opt.meal_id}`] = parseFloat(opt.price)
+            acc[`meal_${opt.meal_service_id}`] = parseFloat(opt.price)
             return acc
         }, {} as PriceMap)
     }, [mealOptions])
 
     const retMealMap = useMemo(() => {
         return returnMealOptions.reduce((acc: PriceMap, opt) => {
-            acc[`meal_${opt.meal_id}`] = parseFloat(opt.price)
+            acc[`meal_${opt.meal_service_id}`] = parseFloat(opt.price)
             return acc
         }, {} as PriceMap)
     }, [returnMealOptions])

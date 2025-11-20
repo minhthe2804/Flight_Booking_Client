@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { SubmitHandler } from 'react-hook-form'
@@ -34,7 +34,7 @@ export default function AdminAirportPage() {
     // 2. 'filters' là state nội bộ, chỉ dùng để điền vào form filter
     const [filters, setFilters] = useState<AirportFilter>(() => {
         // Lấy filter từ URL
-        const { page, limit, airport_code, airport_name, city, country_id, airport_type } = queryConfig as AirportFilter
+        const { airport_code, airport_name, city, country_id, airport_type } = queryConfig as AirportFilter
         return { airport_code, airport_name, city, country_id, airport_type }
     })
 
@@ -43,7 +43,7 @@ export default function AdminAirportPage() {
     // 3. Gọi API lấy danh sách Quốc gia (dùng chung)
     const { data: countriesData, isLoading: isLoadingCountries } = useQuery({
         queryKey: ['countries'],
-        queryFn: () => countryApi.getCountries().then((res) => res.data.data),
+        queryFn: () => countryApi.getCountriesUser().then((res) => res.data.data),
         staleTime: Infinity,
         refetchOnWindowFocus: false
     })
@@ -136,7 +136,7 @@ export default function AdminAirportPage() {
             ...queryConfig, // Giữ lại limit
             ...filters, // Áp dụng filter mới
             page: '1', // Luôn quay về trang 1
-            limit: queryConfig.limit || '5' // SỬA: Giữ limit (hoặc 5)
+            limit: queryConfig.limit || '10' // SỬA: Giữ limit (hoặc 5)
         }
         // Dọn dẹp các giá trị null/undefined/rỗng
         const cleanedParams = omitBy(newParams, (value) => isNil(value) || value === '')

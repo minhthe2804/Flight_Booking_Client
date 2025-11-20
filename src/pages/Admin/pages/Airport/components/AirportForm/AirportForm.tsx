@@ -35,7 +35,6 @@ export default function AirportForm({
     onResetForm,
     countries,
     isLoadingCountries,
-    onOpenCountryModal
 }: AirportFormProps) {
     const isEditing = !!editingAirport
 

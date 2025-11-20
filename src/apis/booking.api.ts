@@ -1,6 +1,5 @@
 import { BookingPayload } from '~/pages/FlightBooking/pages/FlightBookingPayment/FlightBookingPayment'
 import { BookingDetailResponse, BookingHistoryResponse } from '~/types/reservation.type'
-import { SuccessResponse } from '~/types/utils.type'
 import http from '~/utils/http'
 
 export interface BookingSuccess {

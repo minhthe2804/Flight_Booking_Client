@@ -4,7 +4,6 @@ import React from 'react'
 import * as T from '~/types/aiTypes'
 import {
     CheckCircleIcon,
-    MapPinIcon,
     CalendarDaysIcon,
     UserGroupIcon,
     TagIcon,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import classNames from 'classnames/bind'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -9,7 +9,7 @@ import { Controller } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { classOptions } from '~/constants/ticket'
 import { Option } from '~/types/option'
-import { faBaby, faChild, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faBaby, faChild, faPlaneArrival, faPlaneDeparture, faUser } from '@fortawesome/free-solid-svg-icons'
 import styles from './Header.module.css'
 import Navbar from '../Navbar'
 import { useMatch } from 'react-router-dom'
@@ -17,8 +17,11 @@ import { path } from '~/constants/path'
 import useSearchFlights from '~/hooks/useSearchFlight'
 import { useQuery } from '@tanstack/react-query'
 import { airportApi } from '~/apis/airport.api'
+import TrustedBy from '../TrustedBy/TrustedBy'
 
 const cx = classNames.bind(styles)
+// Danh sách mã sân bay phổ biến để hiển thị mặc định
+const POPULAR_AIRPORT_CODES = ['SGN', 'HAN', 'DAD', 'CXR', 'PQC', 'KUL', 'VCA', 'VDO']
 
 export default function Header() {
     const [showDepartureOptions, setShowDepartureOptions] = useState(false)
@@ -64,13 +67,47 @@ export default function Header() {
         }
     }, [isRoundTrip, startDate, maxDate, setValue])
 
-    const { data: airportsData, isLoading: isLoadingAirports } = useQuery({
+    const { data: airportsData } = useQuery({
         queryKey: ['airports'],
-        queryFn: () => airportApi.getAirport(), 
+        queryFn: () => airportApi.getAirport(),
         staleTime: Infinity
     })
 
     const airports = airportsData?.data.data || []
+
+    // --- LOGIC LỌC SÂN BAY ---
+    // 1. Lọc sân bay ĐI
+    const filteredDepartureAirports = useMemo(() => {
+        // Nếu input trống -> Hiển thị danh sách Phổ biến
+        if (!departureValue || departureValue.trim() === '') {
+            return airports.filter((a) => POPULAR_AIRPORT_CODES.includes(a.airport_code))
+        }
+        // Nếu có input -> Tìm kiếm chính xác (theo code, tên, thành phố)
+        const searchTerm = departureValue.toLowerCase()
+        return airports.filter(
+            (a) =>
+                a.airport_code.toLowerCase().includes(searchTerm) ||
+                a.airport_name.toLowerCase().includes(searchTerm) ||
+                a.city.toLowerCase().includes(searchTerm)
+        )
+    }, [departureValue, airports])
+
+    // 2. Lọc sân bay ĐẾN
+    const filteredDestinationAirports = useMemo(() => {
+        // Nếu input trống -> Hiển thị danh sách Phổ biến
+        if (!destinationValue || destinationValue.trim() === '') {
+            return airports.filter((a) => POPULAR_AIRPORT_CODES.includes(a.airport_code))
+        }
+        // Nếu có input -> Tìm kiếm chính xác
+        const searchTerm = destinationValue.toLowerCase()
+        return airports.filter(
+            (a) =>
+                a.airport_code.toLowerCase().includes(searchTerm) ||
+                a.airport_name.toLowerCase().includes(searchTerm) ||
+                a.city.toLowerCase().includes(searchTerm)
+        )
+    }, [destinationValue, airports])
+
     // Xử lý chọn lớp vé
     const handleClassSelect = (option: Option) => {
         setValue('class', option)
@@ -337,54 +374,58 @@ export default function Header() {
                                                             ></path>
                                                         </svg>
                                                         <input
-                                                            {...field} // Kết nối RHF (value, onChange, onBlur)
+                                                            {...field}
                                                             type='text'
                                                             onFocus={() => setShowDepartureOptions(true)}
-                                                            onBlur={() => setShowDepartureOptions(false)}
-                                                            placeholder='TP HCM(SGN)'
-                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
+                                                            // Delay blur để click sự kiện hoạt động
+                                                            onBlur={() =>
+                                                                setTimeout(() => setShowDepartureOptions(false), 200)
+                                                            }
+                                                            placeholder='TP HCM (SGN)'
+                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-black'
+                                                            autoComplete='off'
                                                         />
+                                                        {/* DROPDOWN GỢI Ý ĐIỂM ĐI */}
                                                         {showDepartureOptions && (
-                                                            <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%]'>
-                                                                <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
-                                                                    Thành phố hoặc sân bay phổ biến
+                                                            <div className='absolute z-20 w-full bg-white border rounded-md top-[100%] shadow-xl max-h-60 overflow-y-auto mt-2'>
+                                                                <p className='text-xs text-gray-500 font-semibold px-3 py-2 bg-gray-50 sticky top-0 border-b'>
+                                                                    {!departureValue || departureValue.trim() === ''
+                                                                        ? 'SÂN BAY PHỔ BIẾN'
+                                                                        : 'KẾT QUẢ TÌM KIẾM'}
                                                                 </p>
-                                                                {airports.map((airport) => (
-                                                                    <div
-                                                                        key={airport.airport_id}
-                                                                        className={
-                                                                            field.value ===
-                                                                            `${airport.airport_code} - ${airport.airport_name}`
-                                                                                ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
-                                                                                : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
-                                                                        }
-                                                                        // Dùng onMouseDown để sự kiện xảy ra trước onBlur
-                                                                        onMouseDown={() => {
-                                                                            setValue(
-                                                                                'departure',
-                                                                                `${airport.airport_code} - ${airport.airport_name}`
-                                                                            )
-                                                                            setShowDepartureOptions(false)
-                                                                        }}
-                                                                    >
-                                                                        <svg
-                                                                            width='16'
-                                                                            height='16'
-                                                                            viewBox='0 0 16 16'
-                                                                            fill='none'
-                                                                            xmlns='http://www.w3.org/2000/svg'
-                                                                            data-id='IcProductDuotoneFlightFill16'
+                                                                {filteredDepartureAirports.length > 0 ? (
+                                                                    filteredDepartureAirports.map((airport) => (
+                                                                        <div
+                                                                            key={airport.airport_id}
+                                                                            className='p-3 hover:bg-blue-50 cursor-pointer text-black font-medium flex items-center gap-2 transition-colors border-b border-gray-50 last:border-none'
+                                                                            onMouseDown={() => {
+                                                                                setValue(
+                                                                                    'departure',
+                                                                                    `${airport.airport_code} - ${airport.airport_name}`
+                                                                                )
+                                                                                setShowDepartureOptions(false)
+                                                                            }}
                                                                         >
-                                                                            <path
-                                                                                fill-rule='evenodd'
-                                                                                clip-rule='evenodd'
-                                                                                d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
-                                                                                fill='#687176'
-                                                                            ></path>
-                                                                        </svg>
-                                                                        {airport.airport_name} ({airport.airport_code}) - {airport.city}
+                                                                            <FontAwesomeIcon
+                                                                                icon={faPlaneDeparture}
+                                                                                className='text-gray-400 text-sm'
+                                                                            />
+                                                                            <div>
+                                                                                <span className='font-bold mr-1'>
+                                                                                    {airport.city} (
+                                                                                    {airport.airport_code})
+                                                                                </span>
+                                                                                <span className='text-xs text-gray-500 block'>
+                                                                                    {airport.airport_name}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className='p-3 text-sm text-gray-500 text-center'>
+                                                                        Không tìm thấy sân bay
                                                                     </div>
-                                                                ))}
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -424,53 +465,57 @@ export default function Header() {
                                                             ></path>
                                                         </svg>
                                                         <input
-                                                            {...field} // Kết nối RHF
+                                                            {...field}
                                                             type='text'
                                                             onFocus={() => setShowDestinationOptions(true)}
-                                                            onBlur={() => setShowDestinationOptions(false)}
-                                                            placeholder='Bangkok (BKK)'
-                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-[black]'
+                                                            onBlur={() =>
+                                                                setTimeout(() => setShowDestinationOptions(false), 200)
+                                                            }
+                                                            placeholder='Hà Nội (HAN)'
+                                                            className='w-full p-2 border-none outline-none text-black font-semibold placeholder:text-black'
+                                                            autoComplete='off'
                                                         />
+                                                        {/* DROPDOWN GỢI Ý ĐIỂM ĐẾN */}
                                                         {showDestinationOptions && (
-                                                            <div className='absolute z-10 w-[535px] bg-white border rounded-md mt-3 top-[100%] left-[-131.5%]'>
-                                                                <p className='text-[16px] text-[#687176] font-semibold mt-2 ml-2'>
-                                                                    Thành phố hoặc sân bay phổ biến
+                                                            <div className='absolute z-20 w-full bg-white border rounded-md mt-1 top-[100%] shadow-xl max-h-60 overflow-y-auto'>
+                                                                <p className='text-xs text-gray-500 font-semibold px-3 py-2 bg-gray-50 sticky top-0 border-b'>
+                                                                    {!destinationValue || destinationValue.trim() === ''
+                                                                        ? 'SÂN BAY PHỔ BIẾN'
+                                                                        : 'KẾT QUẢ TÌM KIẾM'}
                                                                 </p>
-                                                                {airports.map((airport) => (
-                                                                    <div
-                                                                        key={airport.airport_code}
-                                                                        className={
-                                                                            field.value ===
-                                                                            `${airport.airport_code} - ${airport.airport_name}`
-                                                                                ? 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2 bg-[#f2f3f3]'
-                                                                                : 'p-3 hover:bg-[#f2f3f3] cursor-pointer text-black font-semibold flex items-center gap-2'
-                                                                        }
-                                                                        onMouseDown={() => {
-                                                                            setValue(
-                                                                                'destination',
-                                                                                `${airport.airport_code} - ${airport.airport_name}`
-                                                                            )
-                                                                            setShowDestinationOptions(false)
-                                                                        }}
-                                                                    >
-                                                                        <svg
-                                                                            width='16'
-                                                                            height='16'
-                                                                            viewBox='0 0 16 16'
-                                                                            fill='none'
-                                                                            xmlns='http://www.w3.org/2000/svg'
-                                                                            data-id='IcProductDuotoneFlightFill16'
+                                                                {filteredDestinationAirports.length > 0 ? (
+                                                                    filteredDestinationAirports.map((airport) => (
+                                                                        <div
+                                                                            key={airport.airport_id}
+                                                                            className='p-3 hover:bg-blue-50 cursor-pointer text-black font-medium flex items-center gap-2 transition-colors border-b border-gray-50 last:border-none'
+                                                                            onMouseDown={() => {
+                                                                                setValue(
+                                                                                    'destination',
+                                                                                    `${airport.airport_code} - ${airport.airport_name}`
+                                                                                )
+                                                                                setShowDestinationOptions(false)
+                                                                            }}
                                                                         >
-                                                                            <path
-                                                                                fill-rule='evenodd'
-                                                                                clip-rule='evenodd'
-                                                                                d='M2.32583 12.4144C2.25868 12.8483 2.64882 13.2384 3.08269 13.1713L3.88941 14.7847C4.04447 15.0949 4.41136 15.2343 4.73328 15.1056L4.87491 15.0489C5.43782 14.8238 5.77796 14.2472 5.70276 13.6456L5.49707 12.0001L8.35421 9.61911L11.8373 14.8437C12.0238 15.1235 12.3894 15.2206 12.6901 15.0702L12.9799 14.9253C13.2767 14.7769 13.4191 14.4329 13.3142 14.1182L12.1637 10.6667L12.6923 10.1381C12.9527 9.87778 12.9527 9.45567 12.6923 9.19532L12.3018 8.8048C12.0862 8.58922 11.7597 8.55215 11.506 8.69358L10.9299 6.96523L14.0713 3.23485C14.5006 2.725 14.4684 1.97138 13.9971 1.50006C13.5257 1.02874 12.7721 0.996499 12.2623 1.42585L8.5319 4.56722L6.80355 3.99111C6.94498 3.73739 6.90791 3.4109 6.69233 3.19532L6.30181 2.8048C6.04146 2.54445 5.61935 2.54445 5.359 2.8048L4.8304 3.33339L1.37893 2.1829C1.06419 2.07799 0.720197 2.22047 0.571826 2.51721L0.426932 2.807C0.276572 3.10772 0.373668 3.47335 0.653416 3.65985L5.87802 7.14292L3.49707 10.0001L1.85156 9.79437C1.24996 9.71917 0.673371 10.0593 0.448206 10.6222L0.391556 10.7638C0.262785 11.0858 0.402277 11.4527 0.712398 11.6077L2.32583 12.4144Z'
-                                                                                fill='#687176'
-                                                                            ></path>
-                                                                        </svg>
-                                                                        {airport.airport_name} ({airport.airport_code}) - {airport.city}
+                                                                            <FontAwesomeIcon
+                                                                                icon={faPlaneArrival}
+                                                                                className='text-gray-400 text-sm'
+                                                                            />
+                                                                            <div>
+                                                                                <span className='font-bold mr-1'>
+                                                                                    {airport.city} (
+                                                                                    {airport.airport_code})
+                                                                                </span>
+                                                                                <span className='text-xs text-gray-500 block'>
+                                                                                    {airport.airport_name}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className='p-3 text-sm text-gray-500 text-center'>
+                                                                        Không tìm thấy sân bay
                                                                     </div>
-                                                                ))}
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -689,32 +734,7 @@ export default function Header() {
                             </div>
                         </div>
 
-                        {/* Phần "Trusted by" */}
-                        <div className='flex items-center rounded-md bg-white w-[378px] h-[48px] mx-auto mt-6 gap-4 p-2'>
-                            <p className='text-[13px] font-semibold w-[20%] opacity-85 italic'>Trusted by</p>
-                            <div className='flex items-start justify-between gap-3 w-[70%]'>
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627790690-7ea3ee26cb9f3737c4fddf7315ec2517.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627795821-b7a62e0084b1bd545b0ad7d3a4e454e5.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627803111-12b2e6b401b049f4c9d04e635d935b61.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2025/03/18/1742281617235-6d7d971115c1207b1b06a37420356647.jpeg?tr=h-25,q-75'
-                                    alt=''
-                                />
-                                <img
-                                    src='https://ik.imagekit.io/tvlk/image/imageResource/2023/06/13/1686627817005-9c5c70219dd7cafb8838d08da8d71d1f.png?tr=h-25,q-75'
-                                    alt=''
-                                />
-                            </div>
-                        </div>
+                        <TrustedBy />
                     </div>
                 </>
             )}

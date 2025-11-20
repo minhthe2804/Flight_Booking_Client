@@ -1,7 +1,7 @@
 // src/pages/FlightBookingPayment/FlightBookingPayment.tsx
 
-import React, { useState, useMemo, useEffect, useContext } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useState, useMemo,  useContext } from 'react'
+import { useNavigate,  } from 'react-router-dom'
 // SỬA: Import thêm useMutation
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -26,8 +26,7 @@ import {
 import { AppContext } from '~/contexts/app.context'
 import { FlightBookingData } from '../FlightBookingDetail/FlightBookingDetail'
 import { flightServices } from '~/apis/flightServices.api'
-import { FlightServiceModal } from '~/pages/SearchFlight/components/FlightServiceModal'
-import { clearAfterZaloPayLS, clearLS } from '~/utils/auth'
+import { clearAfterZaloPayLS } from '~/utils/auth'
 import { path } from '~/constants/path'
 import { zalopayApi } from '~/apis/zalopay.api'
 import { Promotion } from '~/types/promotion'
@@ -96,14 +95,13 @@ export interface RoundTripBookingPayload {
 export type BookingPayload = OneWayBookingPayload | RoundTripBookingPayload
 
 // --- Hằng số giá ---
-const CHILD_TICKET_PRICE = 400000
-const INFANT_TICKET_PRICE = 0
+const INFANT_TICKET_PRICE = 400000
 type PriceMap = { [key: string]: number }
 
 // --- Component ---
 export default function FlightBookingPayment() {
     const navigate = useNavigate()
-    const { flightBookingData, reset, flightServicesData, setflightServicesData, setFlightBookingData } =
+    const { flightBookingData, flightServicesData, setflightServicesData, setFlightBookingData } =
         useContext(AppContext)
 
     // SỬA: Bỏ useState 'isLoading'
@@ -290,8 +288,8 @@ export default function FlightBookingPayment() {
 
     const discountValue = useMemo(() => {
         if (appliedPromo) {
-            if (appliedPromo.discount_percentage > 0) return totalPrice * (appliedPromo.discount_percentage / 100)
-            return appliedPromo.discount_amount * 1000
+            if (appliedPromo?.discount_percentage as number > 0) return totalPrice * (appliedPromo?.discount_percentage as number / 100)
+            return appliedPromo?.discount_amount as number * 1000
         }
         return 0
     }, [appliedPromo, totalPrice])
@@ -312,7 +310,7 @@ export default function FlightBookingPayment() {
     const handleApplyPromo = (promoCode: string): boolean => {
         // Tìm mã trong dữ liệu động từ API
         const validPromo = availablePromotions.find(
-            (p: Promotion) => p.code.toUpperCase() === promoCode.toUpperCase() && p.is_active
+            (p: Promotion) => (p?.code as string).toUpperCase() === promoCode.toUpperCase() && p.is_active
         )
 
         if (validPromo) {

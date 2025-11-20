@@ -1,13 +1,13 @@
 // src/components/BaggageModal/BaggageModal.tsx
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { faClose, faPlaneDeparture, faPlaneArrival } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 // --- Import Types ---
 import { Flight } from '~/types/searchFlight.type'
 import { BaggageOption } from '~/types/flightServices' // Import từ file API
-import { Passenger, SelectedMeals } from '~/types/passenger' // Import Passenger mới
+import { Passenger } from '~/types/passenger' // Import Passenger mới
 import { formatCurrencyVND } from '~/utils/utils'
 
 // --- Kiểu dữ liệu nội bộ ---

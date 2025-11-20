@@ -7,7 +7,7 @@ import { PassengerAdmin as Passenger, passengerTypes, titles, genders } from '~/
 import SelectField from '~/components/SelectField'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
-import { faPlus, faRotate } from '@fortawesome/free-solid-svg-icons'
+import { faRotate } from '@fortawesome/free-solid-svg-icons'
 import {} from '~/apis/country.api' // Import kiểu Country
 import {} from '../../../Airport/Airport'
 import { Country } from '~/apis/airport.api'

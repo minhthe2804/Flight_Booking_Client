@@ -1,5 +1,4 @@
-// (File này được import bởi BookingDetailModal, tôi tạo nó dựa trên logic cũ của bạn)
-import React from 'react'
+
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faSpinner, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
@@ -85,10 +84,10 @@ export default function CancelBookingModal({ isOpen, onClose, onSubmit, isLoadin
                         </Button>
                         <Button
                             type='submit'
-                            className='bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 p-1 rounded-md'
+                            className='bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 p-1 rounded-md flex items-center justify-center'
                             disabled={isLoading}
                         >
-                            {isLoading ? <FontAwesomeIcon icon={faSpinner} spin className='mr-2' /> : null}
+                            <div> {isLoading ? <FontAwesomeIcon icon={faSpinner} spin className='mr-2' /> : null}</div>
                             Xác nhận hủy
                         </Button>
                     </div>

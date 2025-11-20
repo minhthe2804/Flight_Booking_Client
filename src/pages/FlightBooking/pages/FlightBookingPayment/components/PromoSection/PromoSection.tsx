@@ -13,12 +13,12 @@ interface PromoSectionProps {
 }
 
 const formatDiscount = (promo: Promotion): string => {
-    if (promo.discount_percentage > 0) {
+    if (promo?.discount_percentage as number > 0) {
         return `Giảm ${promo.discount_percentage}%`
     }
-    if (promo.discount_amount > 0) {
+    if (promo?.discount_amount as number > 0) {
         // Giả sử API lưu 50 = 50,000 VND, 100 = 100,000 VND
-        const amount = promo.discount_amount * 1000
+        const amount = promo?.discount_amount as number * 1000
         return `Giảm ${amount.toLocaleString('vi-VN')} VND`
     }
     return promo.description // Fallback
@@ -46,7 +46,7 @@ export default function PromoSection({
     }
 
     // Lấy chi tiết của mã đã áp dụng
-    const appliedPromoDetails = promotions.find((p) => p.code.toUpperCase() === appliedPromoId?.toUpperCase())
+    const appliedPromoDetails = promotions.find((p) => (p?.code as string).toUpperCase() === appliedPromoId?.toUpperCase())
 
     return (
         <div className='bg-white rounded-lg shadow-sm border border-gray-200 mt-5'>
@@ -114,8 +114,8 @@ export default function PromoSection({
                                         </div>
                                         <button
                                             onClick={() => {
-                                                setPromoCode(promo.code) // Tự điền code vào ô
-                                                onApplyPromo(promo.code) // Và áp dụng ngay
+                                                setPromoCode(promo?.code as string) // Tự điền code vào ô
+                                                onApplyPromo(promo?.code as string) // Và áp dụng ngay
                                             }}
                                             className='text-sm font-semibold text-blue-600 hover:underline'
                                         >

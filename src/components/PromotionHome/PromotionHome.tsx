@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import {
     faCopy,
     faTicket,
-    faExclamationTriangle,
     faChevronRight,
     faChevronLeft
 } from '@fortawesome/free-solid-svg-icons'
@@ -63,7 +62,7 @@ export default function PromotionHome() {
                 setCopiedCode(code)
                 setTimeout(() => setCopiedCode(null), 2000)
             },
-            (err) => {
+            (_err) => {
                 toast.error('Sao chép thất bại')
             }
         )
@@ -149,8 +148,8 @@ export default function PromotionHome() {
                                           <div>
                                               <p className='text-[11px] font-medium opacity-90'>Giảm</p>
                                               <b className='text-xl font-bold'>
-                                                  {promotion.discount_amount > 0
-                                                      ? formatCurrencyVND(promotion.discount_amount * 1000)
+                                                  {promotion?.discount_amount as number > 0
+                                                      ? formatCurrencyVND(promotion?.discount_amount as number * 1000)
                                                       : `${promotion.discount_percentage}%`}
                                               </b>
                                           </div>
@@ -179,7 +178,7 @@ export default function PromotionHome() {
                                                   </p>
                                               </div>
                                               <button
-                                                  onClick={() => handleCopy(promotion.code)}
+                                                  onClick={() => handleCopy(promotion?.code as string)}
                                                   className={`w-24 h-8 rounded-md font-semibold text-white text-sm transition-colors duration-200 flex items-center justify-center gap-1 ${
                                                       copiedCode === promotion.code
                                                           ? 'bg-green-500'

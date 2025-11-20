@@ -1,10 +1,10 @@
 import { FunnelIcon, Search } from 'lucide-react'
 import { PassengerFilterAdmin as PassengerFilter, passengerTypes, titles } from '~/types/passenger'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMagnifyingGlass, faRotate } from '@fortawesome/free-solid-svg-icons'
+import { faRotate } from '@fortawesome/free-solid-svg-icons'
 
 import { useMemo } from 'react'
-import { Country } from '../../../Airport/Airport'
+import { Country } from '~/apis/country.api'
 
 interface PassengerFilterCardProps {
     filters: PassengerFilter

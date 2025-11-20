@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Promotion } from '~/apis/promotion.api' // Import kiểu Promotion
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
 import { faTrash, faCheckCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
-import { formatCurrencyVND, formatCustomDate, formatDateForAPI } from '~/utils/utils'
+import { formatCurrencyVND, formatDateForAPI } from '~/utils/utils'
 
 interface PromotionTableProps {
     promotions: Promotion[] | any

@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // SỬA: Import đúng kiểu Passenger (snake_case)
 import { PassengerAdmin as Passenger } from '~/types/passenger'
 import { faPenToSquare } from '@fortawesome/free-regular-svg-icons'
-import { TrashIcon } from 'lucide-react'
 
 interface PassengerTableProps {
     passengers: Passenger[] | any
