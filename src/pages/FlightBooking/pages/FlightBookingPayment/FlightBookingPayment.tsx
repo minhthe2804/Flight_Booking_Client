@@ -453,7 +453,7 @@ export default function FlightBookingPayment() {
                     phone: contact_info.phone
                 },
                 passengers: passengersPayload,
-                promotion_code: appliedPromo?.code || null
+                promotion_code: appliedPromo?.code || '' as string
             } as RoundTripBookingPayload
         } else {
             // --- TẠO PAYLOAD MỘT CHIỀU (One Way) ---
@@ -468,7 +468,7 @@ export default function FlightBookingPayment() {
                     phone: contact_info.phone
                 },
                 passengers: passengersPayload,
-                promotion_code: appliedPromo?.code || null,
+                promotion_code: appliedPromo?.code || '' as string,
                 meal_options: getMealOptions('departure'),
                 baggage_options: getBaggageOptions('departure')
             } as OneWayBookingPayload
