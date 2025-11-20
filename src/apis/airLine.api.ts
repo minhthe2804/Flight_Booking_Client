@@ -52,6 +52,7 @@ export type AirlineFormData = {
     country_id: number // Cho phép undefined (khi chưa chọn)
     logo_url: string | null
     service_packages: ServicePackagePayload[] // mảng 'service_packages',
+    country_name?: string
 }
 // ------------------------------------
 
