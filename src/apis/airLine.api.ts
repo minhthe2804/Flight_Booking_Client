@@ -17,8 +17,9 @@ export interface Airline {
     is_active: boolean
     class_type: 'economy' | 'business'
     ServicePackages: ApiServicePackage[] // API trả về (PascalCase, string JSON)
-    service_packages:ApiServicePackage[]
+    service_packages: ApiServicePackage[]
     Country?: Country
+    country_name?: string
 }
 
 // --- 2. SỬA: KIỂU DỮ LIỆU CHO FORM (Payload - JSON 1) ---
@@ -52,7 +53,6 @@ export type AirlineFormData = {
     country_id: number // Cho phép undefined (khi chưa chọn)
     logo_url: string | null
     service_packages: ServicePackagePayload[] // mảng 'service_packages',
-    country_name?: string
 }
 // ------------------------------------
 

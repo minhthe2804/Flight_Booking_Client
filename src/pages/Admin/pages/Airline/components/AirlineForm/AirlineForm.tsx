@@ -81,7 +81,6 @@ const defaultValues: AirlineFormData = {
     airline_id: 0,
     airline_code: '',
     airline_name: '',
-    country_name: '',
     country_id: 0,
     logo_url: '',
     service_packages: [
