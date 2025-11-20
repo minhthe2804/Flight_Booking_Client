@@ -35,11 +35,15 @@ export default function AdminAircraftPage() {
     // === GỌI API ===
 
     // 1. Gọi API Hãng bay
+    // 1. Gọi API Hãng bay (không giới hạn)
     const { data: airlinesData, isLoading: isLoadingAirlines } = useQuery({
-        queryKey: ['airlines'],
-        queryFn: () => airlineApi.getAirlines().then((res) => res.data.data),
-        staleTime: Infinity,
-        refetchOnWindowFocus: false
+    queryKey: ['airlinesList'],
+    queryFn: () =>
+        airlineApi
+        .getAirlineAdmin({ page: '1', limit: '100' }) // limit lớn để lấy tất cả
+        .then((res) => res.data.data), // Chỉ lấy mảng data
+    staleTime: Infinity,
+    refetchOnWindowFocus: false
     })
     const airlines = airlinesData || []
 

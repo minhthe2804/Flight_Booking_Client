@@ -1,10 +1,10 @@
-import { FunnelIcon } from 'lucide-react'
+import { ChevronDown, ChevronUp, FunnelIcon } from 'lucide-react'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faRotate } from '@fortawesome/free-solid-svg-icons'
 
 import { Airport } from '~/apis/airport.api'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { FlightFilter } from '~/types/flight.type'
 import { Airline } from '~/apis/airLine.api'
 
@@ -57,15 +57,24 @@ export default function FlightFilterCard({
             airports.map((a: Airport) => ({ value: a.airport_id.toString(), label: `${a.city} (${a.airport_code})` })),
         [airports]
     )
+    const [isOpen, setIsOpen] = useState(false)
 
     return (
         <div className='bg-white p-6 rounded-lg shadow-md h-fit border border-gray-100'>
-            <h2 className='flex items-center text-lg font-semibold mb-5 text-gray-800 pb-4 border-b'>
-                <FunnelIcon className='h-5 w-5 mr-2 text-gray-500' />
-                Tìm kiếm chuyến bay
-            </h2>
+            <button
+                type='button'
+                className='flex items-center justify-between w-full text-lg font-semibold text-gray-800 pb-4 border-b mb-5'
+                onClick={() => setIsOpen((prev) => !prev)}
+            >
+                <span className='inline-flex items-center'>
+                    <FunnelIcon className='h-5 w-5 mr-2 text-gray-500' />
+                    Tìm kiếm chuyến bay
+                </span>
+                {isOpen ? <ChevronUp className='h-5 w-5 text-gray-500' /> : <ChevronDown className='h-5 w-5 text-gray-500' />}
+            </button>
 
-            <form onSubmit={onFilterSubmit}>
+            {isOpen && (
+                <form onSubmit={onFilterSubmit}>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Mã chuyến bay */}
                     <div>
@@ -281,6 +290,7 @@ export default function FlightFilterCard({
                     </button>
                 </div>
             </form>
+            )}
         </div>
     )
 }

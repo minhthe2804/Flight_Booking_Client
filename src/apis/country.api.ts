@@ -15,9 +15,11 @@ export type CountryResponse = SuccessResponse<Country[]>
 // Kiểu cho response chi tiết
 export type CountryDetailResponse = SuccessResponse<Country>
 
+const NO_PAGINATION_PARAMS = { limit: 100, page: 1 }
+
 export const countryApi = {
-    getCountriesUser: () => http.get('countries'),
-    getCountries: () => http.get('admin/countries'),
+    getCountriesUser: () => http.get('countries', { params: NO_PAGINATION_PARAMS }),
+    getCountries: () => http.get('admin/countries', { params: NO_PAGINATION_PARAMS }),
     createCountry: (data: CountryFormData) => {
         return http.post<CountryDetailResponse>('/api/countries', data)
     }

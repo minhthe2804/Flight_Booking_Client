@@ -60,14 +60,26 @@ export default function AdminFlightPage() {
 
     const { data: airlinesData, isLoading: isLoadingAirlines } = useQuery({
         queryKey: ['airlinesList'],
-        queryFn: () => airlineApi.getAirlineAdmin({}).then((res) => res.data.data),
+        queryFn: () =>
+            airlineApi
+                .getAirlineAdmin({
+                    page: '1',
+                    limit: '100'
+                })
+                .then((res) => res.data.data),
         staleTime: Infinity
     })
     const airlines = airlinesData || []
 
     const { data: airportsData, isLoading: isLoadingAirports } = useQuery({
         queryKey: ['airportsList'],
-        queryFn: () => airportApi.getAirportAdmin({}).then((res) => res.data.data),
+        queryFn: () =>
+            airportApi
+                .getAirportAdmin({
+                    page: '1',
+                    limit: '100'
+                })
+                .then((res) => res.data.data),
         staleTime: Infinity
     })
     const airports = airportsData || []
@@ -75,7 +87,13 @@ export default function AdminFlightPage() {
     // SỬA: Thêm API Aircraft
     const { data: aircraftsData, isLoading: isLoadingAircrafts } = useQuery({
         queryKey: ['aircraftsList'],
-        queryFn: () => aircraftApi.getAircrafts({}).then((res) => res.data),
+        queryFn: () =>
+            aircraftApi
+                .getAircrafts({
+                    page: '1',
+                    limit: '100'
+                })
+                .then((res) => res.data),
         staleTime: Infinity
     })
     const aircrafts = aircraftsData?.data || []
