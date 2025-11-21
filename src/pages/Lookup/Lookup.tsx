@@ -1,4 +1,4 @@
-import { faInfo, faPlaneUp, faSpinner, faTicket } from '@fortawesome/free-solid-svg-icons'
+import { faInfo, faPlaneUp, faSpinner, faTicket, faReceipt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Button from '~/components/Button'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -10,7 +10,13 @@ import { useState, useMemo } from 'react'
 import { BookingPassengerFlight, Lookup as LookupType } from '~/types/lookup.type'
 import { isAxiosError } from 'axios'
 import { toast } from 'react-toastify'
-import { formatFlightTimeOnly, formatCurrencyVND, formatDateForAPI, formatDurationLookup } from '~/utils/utils'
+import {
+    formatFlightTimeOnly,
+    formatCurrencyVND,
+    formatDateForAPI,
+    formatDurationLookup,
+    formatDateTime
+} from '~/utils/utils'
 import { lookupApi } from '~/apis/lookup.api'
 
 // 1. Định nghĩa kiểu dữ liệu cho form tìm kiếm
@@ -121,8 +127,56 @@ export default function Lookup() {
         return Array.from(flightsMap.values())
     }, [bookingData])
 
+    // --- SỬA: Helper lấy badge trạng thái ---
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+                return (
+                    <span className='bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded border border-green-400 inline-block'>
+                        ĐÃ XÁC NHẬN
+                    </span>
+                )
+            case 'pending':
+                return (
+                    <span className='bg-yellow-100 text-yellow-800 text-xs font-bold px-2.5 py-0.5 rounded border border-yellow-400 inline-block'>
+                        CHỜ THANH TOÁN
+                    </span>
+                )
+            case 'cancelled':
+                return (
+                    <span className='bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded border border-gray-400 inline-block'>
+                        ĐÃ HỦY
+                    </span>
+                )
+            case 'completed':
+                return (
+                    <span className='bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-400 inline-block'>
+                        ĐÃ HOÀN THÀNH
+                    </span>
+                )
+            case 'pending_cancellation':
+                return (
+                    <span className='bg-orange-100 text-orange-800 text-xs font-bold px-2.5 py-0.5 rounded border border-orange-400 inline-block'>
+                        CHỜ HỦY VÉ
+                    </span>
+                )
+            case 'cancellation_rejected':
+                return (
+                    <span className='bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-400 inline-block'>
+                        TỪ CHỐI HỦY
+                    </span>
+                )
+            default:
+                return (
+                    <span className='bg-gray-100 text-gray-800 text-xs font-bold px-2.5 py-0.5 rounded border border-gray-400 inline-block'>
+                        {status}
+                    </span>
+                )
+        }
+    }
+
     return (
-        <div className='py-8 bg-gray-50 '>
+        <div className='py-8 bg-gray-50 min-h-screen'>
             <div className='max-w-[1278px] mx-auto px-4'>
                 <h1 className='text-3xl font-semibold text-gray-800 text-center'>Tra Cứu Thông Tin Đặt Chỗ</h1>
                 <div className='mt-8 max-w-3xl mx-auto'>
@@ -192,25 +246,36 @@ export default function Lookup() {
                                             {bookingData.passengers[0].passenger.last_name}
                                         </span>
                                     </p>
-                                    <p>
+                                    <div className='flex items-center gap-2'>
                                         <b className='font-semibold text-gray-700'>Trạng thái vé:</b>{' '}
-                                        <span className='capitalize font-medium text-green-600'>
-                                            {bookingData.status}
-                                        </span>
-                                    </p>
+                                        {getStatusBadge(bookingData.status)}
+                                    </div>
                                     <p>
                                         <b className='font-semibold text-gray-700'>SĐT:</b>{' '}
                                         <span className='text-gray-900'>{bookingData.contact_phone}</span>
                                     </p>
-                                    <p>
+
+                                    {/* SỬA: Format Thanh toán */}
+                                    <div className='flex items-center gap-2'>
                                         <b className='font-semibold text-gray-700'>Thanh toán:</b>{' '}
-                                        <span className='capitalize font-medium text-green-600'>
-                                            {formatCurrencyVND(Number(bookingData.total_amount))}
+                                        <span
+                                            className={`font-bold capitalize ${bookingData.payment_status === 'paid' ? 'text-green-600' : 'text-orange-600'}`}
+                                        >
+                                            {bookingData.payment_status === 'paid'
+                                                ? 'Đã thanh toán'
+                                                : 'Chưa thanh toán'}
                                         </span>
-                                    </p>
+                                    </div>
+
                                     <p>
                                         <b className='font-semibold text-gray-700'>Email:</b>{' '}
                                         <span className='text-gray-900'>{bookingData.contact_email}</span>
+                                    </p>
+                                    <p>
+                                        <b className='font-semibold text-gray-700'>Tổng tiền:</b>{' '}
+                                        <span className='text-orange-600 font-bold'>
+                                            {formatCurrencyVND(Number(bookingData.total_amount))}
+                                        </span>
                                     </p>
                                 </div>
                             </div>
