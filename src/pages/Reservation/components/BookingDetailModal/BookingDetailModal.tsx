@@ -7,11 +7,14 @@ import {
     faUser,
     faTicket,
     faReceipt,
-    faTrash
+    faTrash,
+    faCreditCard,
+    faFilePdf
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { bookingApi } from '~/apis/booking.api'
+import { lookupApi } from '~/apis/lookup.api' // SỬA: Import API Lookup để lấy vé
 import { BookingDetailItem } from '~/types/reservation.type'
 import {
     formatCurrencyVND,
@@ -29,8 +32,10 @@ interface BookingDetailModalProps {
     onClose: () => void
     bookingReference: number | null
     isAdmin?: boolean
+    onPayment?: (id: number) => void
 }
 
+// ... (Giữ nguyên các interface GroupedFlight, ModalSkeleton, getStatusBadge)
 // Kiểu dữ liệu cho chuyến bay đã được nhóm
 interface GroupedFlight {
     flight: BookingDetailItem['Flight']
@@ -60,7 +65,7 @@ const ModalSkeleton = () => (
     </div>
 )
 
-// Helper: Hiển thị Badge Trạng thái (Đã cập nhật đầy đủ)
+// Helper: Hiển thị Badge Trạng thái
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'pending':
@@ -108,8 +113,7 @@ const getStatusBadge = (status: string) => {
     }
 }
 
-// Component chính
-export default function BookingDetailModal({ isOpen, onClose, bookingReference, isAdmin }: BookingDetailModalProps) {
+export default function BookingDetailModal({ isOpen, onClose, bookingReference, isAdmin, onPayment }: BookingDetailModalProps) {
     const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false)
     const queryClient = useQueryClient()
 
@@ -122,21 +126,46 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
     } = useQuery({
         queryKey: ['bookingDetail', bookingReference],
         queryFn: () => bookingApi.getBookingInfomation(Number(bookingReference)),
-        enabled: !!bookingReference && isOpen, // Chỉ gọi khi modal mở và có ref
-        staleTime: 1000 * 60 * 5 // Cache 5 phút
+        enabled: !!bookingReference && isOpen,
+        staleTime: 1000 * 60 * 5
     })
-    const booking = bookingDetailData?.data.data
 
-    // 2. Logic Hủy vé
+    const booking = bookingDetailData?.data.data
+    
+    // --- SỬA: LOGIC TẢI VÉ ĐIỆN TỬ ---
+    const eticketMutation = useMutation({
+        mutationFn: (ref: string) => lookupApi.getEticket(ref),
+        onSuccess: (response, ref) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', `eticket-${ref}.pdf`)
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            window.URL.revokeObjectURL(url)
+            toast.success('Đã tải vé điện tử thành công!')
+        },
+        onError: () => {
+            toast.error('Tải vé điện tử thất bại.')
+        }
+    })
+
+    const handleDownloadTicket = () => {
+        if (!booking) return
+        eticketMutation.mutate(booking.booking_reference)
+    }
+    // ----------------------------------
+
+    // 2. Logic Hủy vé (Giữ nguyên)
     const cancelMutation = useMutation({
         mutationFn: (data: { bookingId: number; reason: string }) =>
             bookingApi.cancelBooking(data.bookingId, data.reason),
         onSuccess: (data) => {
             toast.success(data.data.message || 'Yêu cầu hủy đã được gửi!')
-            // Cập nhật lại 2 query: danh sách và chi tiết
             queryClient.invalidateQueries({ queryKey: ['myBookings'] })
             queryClient.invalidateQueries({ queryKey: ['bookingDetail', bookingReference] })
-            setIsConfirmCancelOpen(false) // Đóng modal xác nhận
+            setIsConfirmCancelOpen(false)
         },
         onError: (error) => {
             if (isAxiosError(error)) {
@@ -147,14 +176,13 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
         }
     })
 
-    // Hàm xử lý xác nhận hủy
     const handleSubmitCancellation = (data: { reason: string }) => {
         if (booking) {
             cancelMutation.mutate({ bookingId: booking.booking_id, reason: data.reason })
         }
     }
 
-    // 3. Xử lý nhóm dữ liệu
+    // 3. Xử lý nhóm dữ liệu (Giữ nguyên)
     const groupedFlights = useMemo((): GroupedFlight[] => {
         if (!booking?.BookingDetails) return []
 
@@ -172,7 +200,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
         return Array.from(flightMap.values())
     }, [booking])
 
-    // Lấy danh sách hành khách duy nhất
     const uniquePassengers = useMemo((): BookingDetailItem['Passenger'][] => {
         if (!booking?.BookingDetails) return []
         const passengerMap = new Map<number, BookingDetailItem['Passenger']>()
@@ -184,7 +211,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
         return Array.from(passengerMap.values())
     }, [booking])
 
-    // 4. Render
     if (!isOpen) return null
 
     return (
@@ -198,15 +224,34 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* === Header === */}
-                    <div className='relative px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg'>
-                        <h2 className='text-lg font-semibold text-center text-gray-800'>Chi tiết đặt chỗ</h2>
-                        <button
-                            onClick={onClose}
-                            className='absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100'
-                            aria-label='Đóng'
-                        >
-                            <FontAwesomeIcon icon={faXmark} className='w-5 h-5' />
-                        </button>
+                    <div className='relative px-6 py-4 border-b border-gray-200 bg-gray-50 rounded-t-lg flex items-center justify-between'>
+                        <h2 className='text-lg font-semibold text-gray-800'>Chi tiết đặt chỗ</h2>
+                        
+                        <div className="flex items-center gap-3">
+                             {booking && (booking.status === 'confirmed' || booking.status === 'completed') && (
+                                <button
+                                    onClick={handleDownloadTicket}
+                                    disabled={eticketMutation.isPending}
+                                    className='px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-md border border-blue-200 flex items-center gap-2 transition-colors'
+                                    title="Tải vé điện tử (PDF)"
+                                >
+                                    {eticketMutation.isPending ? (
+                                        <FontAwesomeIcon icon={faSpinner} spin />
+                                    ) : (
+                                        <FontAwesomeIcon icon={faFilePdf} />
+                                    )}
+                                    In vé điện tử
+                                </button>
+                             )}
+
+                            <button
+                                onClick={onClose}
+                                className='text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100'
+                                aria-label='Đóng'
+                            >
+                                <FontAwesomeIcon icon={faXmark} className='w-5 h-5' />
+                            </button>
+                        </div>
                     </div>
 
                     {/* === Body (Nội dung chính) === */}
@@ -282,7 +327,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                                     </div>
                                 </div>
 
-                                {/* --- 2. Chi tiết chuyến bay (lặp) --- */}
+                                {/* --- 2. Chi tiết chuyến bay --- */}
                                 <div className='space-y-4'>
                                     <h4 className='text-base font-semibold text-gray-700 flex items-center'>
                                         <FontAwesomeIcon icon={faTicket} className='mr-2 text-blue-500' />
@@ -290,6 +335,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                                     </h4>
                                     {groupedFlights.map((group, index) => (
                                         <div key={index} className='p-4 rounded-lg border border-gray-200'>
+                                            {/* Header Chuyến bay */}
                                             <div className='flex items-center space-x-3 mb-3'>
                                                 <div>
                                                     <p className='font-semibold text-gray-800'>
@@ -300,6 +346,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                                                     </p>
                                                 </div>
                                             </div>
+                                            {/* Nội dung Chuyến bay */}
                                             <div className='flex items-center justify-between text-center'>
                                                 {/* Cất cánh */}
                                                 <div className='flex-1'>
@@ -356,7 +403,6 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                                         <FontAwesomeIcon icon={faUser} className='mr-2 text-blue-500' />
                                         Thông tin hành khách
                                     </h4>
-
                                     <div className='p-4 rounded-lg border border-gray-200 space-y-4'>
                                         {uniquePassengers.map((passenger) => (
                                             <div
@@ -481,20 +527,34 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                             Đóng
                         </button>
 
-                        {!isAdmin && booking && ['pending', 'confirmed',].includes(booking.status) && (
+                        <div className="flex gap-2">
+                            {/* Nút Thanh Toán */}
+                            {booking && booking.status === 'pending' && onPayment && !isAdmin && (
+                                <button
+                                    onClick={() => onPayment(booking.booking_id)}
+                                    className='px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-150 shadow hover:shadow-md flex items-center gap-2'
+                                >
+                                    <FontAwesomeIcon icon={faCreditCard} /> Thanh toán ngay
+                                </button>
+                            )}
+
+                            {/* Nút Hủy */}
+                            {booking && 
+                            ['pending', 'confirmed'].includes(booking.status) && !isAdmin && (
                             <button
                                 onClick={() => setIsConfirmCancelOpen(true)}
                                 disabled={cancelMutation.isPending}
                                 className='px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors duration-150 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'
                             >
                                 {cancelMutation.isPending ? (
-                                    <FontAwesomeIcon icon={faSpinner} spin className='mr-2' />
+                                <FontAwesomeIcon icon={faSpinner} spin className='mr-2' />
                                 ) : (
-                                    <FontAwesomeIcon icon={faTrash} className='mr-2' />
+                                <FontAwesomeIcon icon={faTrash} className='mr-2' />
                                 )}
-                                Yêu cầu hủy đặt chỗ
+                                Yêu cầu hủy
                             </button>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
