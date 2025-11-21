@@ -257,16 +257,24 @@ export default function FlightBookingPayment() {
             {}
         )
 
-        const totalSelectedPackage = selectedPackage.pricePerPassenger + selectedReturnPackage.pricePerPassenger
-        // 1. Tính giá vé
-        // Giá người lớn = SL Người lớn * Giá Gói
-        const adultPrice = passengerCounts.adults * (totalSelectedPackage as number)
-        // Giá trẻ em = SL Trẻ em * Giá Gói
-        const childPrice = passengerCounts.children * (totalSelectedPackage as number)
-        // Giá em bé = SL Em bé * Giá cố định
-        const infantPrice = passengerCounts.infants * INFANT_TICKET_PRICE
+        let pricePerAdult = Number(selectedPackage?.pricePerPassenger || 0)
+        let pricePerChild = Number(selectedPackage?.pricePerPassenger || 0)
+        let pricePerInfant = INFANT_TICKET_PRICE // Em bé giá cố định chiều đi
 
-        const basePrice = returnFlight ? adultPrice + childPrice + infantPrice : adultPrice + childPrice + infantPrice // Tổng giá vé cơ sở
+        // Nếu là KHỨ HỒI (có returnFlight và returnSelectedPackage)
+        if (returnFlight && selectedReturnPackage) {
+            pricePerAdult += Number(selectedReturnPackage.pricePerPassenger || 0)
+            pricePerChild += Number(selectedReturnPackage.pricePerPassenger || 0)
+            pricePerInfant += INFANT_TICKET_PRICE // Cộng thêm vé em bé chiều về
+        }
+
+        // 2. Nhân với số lượng khách
+        const adultPrice = passengerCounts.adults * pricePerAdult
+        const childPrice = passengerCounts.children * pricePerChild
+        const infantPrice = passengerCounts.infants * pricePerInfant
+
+        // Tổng giá vé cơ bản
+        const basePrice = adultPrice + childPrice + infantPrice
 
         // 2. Tính giá dịch vụ (Nhân 1000)
 
