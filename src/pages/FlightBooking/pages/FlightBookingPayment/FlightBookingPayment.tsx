@@ -1,7 +1,7 @@
 // src/pages/FlightBookingPayment/FlightBookingPayment.tsx
 
-import { useState, useMemo,  useContext } from 'react'
-import { useNavigate,  } from 'react-router-dom'
+import { useState, useMemo, useContext, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 // SỬA: Import thêm useMutation
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -26,7 +26,7 @@ import {
 import { AppContext } from '~/contexts/app.context'
 import { FlightBookingData } from '../FlightBookingDetail/FlightBookingDetail'
 import { flightServices } from '~/apis/flightServices.api'
-import { clearAfterZaloPayLS } from '~/utils/auth'
+import { clearAfterZaloPayLS, getFlightBookingDataFromLS, getFlightServicesFromLS } from '~/utils/auth'
 import { path } from '~/constants/path'
 import { zalopayApi } from '~/apis/zalopay.api'
 import { Promotion } from '~/types/promotion'
@@ -104,9 +104,25 @@ export default function FlightBookingPayment() {
     const { flightBookingData, flightServicesData, setflightServicesData, setFlightBookingData } =
         useContext(AppContext)
 
-    // SỬA: Bỏ useState 'isLoading'
+    const isSessionValid = getFlightServicesFromLS() && getFlightBookingDataFromLS() && flightServicesData.departureFlight
+
+    // Effect chuyển hướng (chạy sau khi render)
+    useEffect(() => {
+        if (!isSessionValid) {
+            // Hiển thị thông báo 1 lần
+            toast.info('Phiên đặt vé không tồn tại hoặc đã hết hạn. Đang chuyển hướng...', {
+                toastId: 'session_expired' // Ngăn trùng lặp toast
+            })
+            // Chuyển hướng ngay lập tức
+            navigate(path.reservation, { replace: true })
+        }
+    }, [isSessionValid, navigate])
+
+    if (!isSessionValid) {
+        return null
+    }
+
     const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null)
-    // const [isPaymentLoading, setIsLoading] = useState(false) // <-- ĐÃ XÓA
 
     const { departureFlight, passengerCounts, returnFlight, selectedPackage } = flightServicesData
 
@@ -129,7 +145,7 @@ export default function FlightBookingPayment() {
         queryFn: () => promotionApi.getPromotion().then((res) => res.data),
         staleTime: 1000 * 60 * 10
     })
-    const availablePromotions: Promotion[] = promoData?.data || [] as any
+    const availablePromotions: Promotion[] = promoData?.data || ([] as any)
 
     // 1. Lấy hành lý chuyến đi
     const { data: departureBaggageServices, isLoading: isLoadingDepBaggageServices } = useQuery({
@@ -288,8 +304,9 @@ export default function FlightBookingPayment() {
 
     const discountValue = useMemo(() => {
         if (appliedPromo) {
-            if (appliedPromo?.discount_percentage as number > 0) return totalPrice * (appliedPromo?.discount_percentage as number / 100)
-            return appliedPromo?.discount_amount as number * 1000
+            if ((appliedPromo?.discount_percentage as number) > 0)
+                return totalPrice * ((appliedPromo?.discount_percentage as number) / 100)
+            return (appliedPromo?.discount_amount as number) * 1000
         }
         return 0
     }, [appliedPromo, totalPrice])
@@ -453,7 +470,7 @@ export default function FlightBookingPayment() {
                     phone: contact_info.phone
                 },
                 passengers: passengersPayload,
-                promotion_code: appliedPromo?.code as string || '' as string
+                promotion_code: (appliedPromo?.code as string) || ('' as string)
             } as RoundTripBookingPayload
         } else {
             // --- TẠO PAYLOAD MỘT CHIỀU (One Way) ---
@@ -468,7 +485,7 @@ export default function FlightBookingPayment() {
                     phone: contact_info.phone
                 },
                 passengers: passengersPayload,
-                promotion_code: appliedPromo?.code as string || '' as string,
+                promotion_code: (appliedPromo?.code as string) || ('' as string),
                 meal_options: getMealOptions('departure'),
                 baggage_options: getBaggageOptions('departure')
             } as OneWayBookingPayload

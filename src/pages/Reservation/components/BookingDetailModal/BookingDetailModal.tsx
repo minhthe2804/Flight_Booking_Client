@@ -481,7 +481,7 @@ export default function BookingDetailModal({ isOpen, onClose, bookingReference, 
                             Đóng
                         </button>
 
-                        {!isAdmin && booking && ['pending', 'confirmed'].includes(booking.status) && (
+                        {!isAdmin && booking && ['pending', 'confirmed',].includes(booking.status) && (
                             <button
                                 onClick={() => setIsConfirmCancelOpen(true)}
                                 disabled={cancelMutation.isPending}

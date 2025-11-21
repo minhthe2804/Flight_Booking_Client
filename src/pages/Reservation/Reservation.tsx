@@ -1,56 +1,61 @@
 import React, { useState, useMemo } from 'react'
-import {  faSearch, faEye } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faEye, faCreditCard, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate, createSearchParams } from 'react-router-dom'
+import { debounce } from 'lodash'
+import { toast } from 'react-toastify'
+
 import Paginate from '~/components/Pagination'
 import BookingDetailModal from './components/BookingDetailModal/BookingDetailModal'
 import { bookingApi } from '~/apis/booking.api'
+import { zalopayApi } from '~/apis/zalopay.api'
 import { formatCurrencyVND, formatDateTime } from '~/utils/utils'
-import { BookingHistoryItem } from '~/types/reservation.type'
 import useFlightQueryConfig from '~/hooks/useSearchFlightQueryConfig'
+import { BookingHistoryItem } from '~/types/reservation.type'
 
-// --- Helper: Hiển thị Badge Trạng thái ---
+// --- Helper: Hiển thị Badge Trạng thái (Giữ nguyên) ---
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'pending':
             return (
-                <span className='bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold border border-yellow-200 whitespace-nowrap'>
+                <span className='bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold border border-yellow-200 whitespace-nowrap'>
                     Chờ thanh toán
                 </span>
             )
         case 'confirmed':
             return (
-                <span className='bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold border border-green-200 whitespace-nowrap'>
+                <span className='bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold border border-green-200 whitespace-nowrap'>
                     Đã xác nhận
                 </span>
             )
         case 'completed':
             return (
-                <span className='bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold border border-blue-200 whitespace-nowrap'>
+                <span className='bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 whitespace-nowrap'>
                     Đã hoàn thành
                 </span>
             )
         case 'cancelled':
             return (
-                <span className='bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-semibold border border-gray-200 whitespace-nowrap'>
+                <span className='bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200 whitespace-nowrap'>
                     Đã hủy
                 </span>
             )
         case 'pending_cancellation':
             return (
-                <span className='bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-semibold border border-orange-200 whitespace-nowrap'>
+                <span className='bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold border border-orange-200 whitespace-nowrap'>
                     Chờ hủy vé
                 </span>
             )
         case 'cancellation_rejected':
             return (
-                <span className='bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold border border-red-200 whitespace-nowrap'>
+                <span className='bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold border border-red-200 whitespace-nowrap'>
                     Từ chối hủy
                 </span>
             )
         default:
             return (
-                <span className='bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-semibold border border-gray-200 whitespace-nowrap'>
+                <span className='bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200 whitespace-nowrap'>
                     {status}
                 </span>
             )
@@ -67,7 +72,7 @@ const StatBoxSkeleton: React.FC = () => (
     </div>
 )
 
-// Component Skeleton Bảng
+// Component Skeleton Bảng (Dùng trực tiếp ở đây)
 const TableRowSkeleton: React.FC = () => (
     <tr className='animate-pulse'>
         {Array(8)
@@ -81,36 +86,96 @@ const TableRowSkeleton: React.FC = () => (
 )
 
 export default function Reservation() {
+    const navigate = useNavigate()
     const [selectedBookingRef, setSelectedBookingRef] = useState<number | null>(null)
 
+    // 1. Lấy config từ URL
     const queryConfig = useFlightQueryConfig()
     const page = Number(queryConfig.page || 1)
-    const [limit, setLimit] = useState(5)
-    const [search, setSearch] = useState('')
+    const limit = Number(queryConfig.limit || 5)
+    const initialSearch = queryConfig.search || ''
 
+    // 2. State input tìm kiếm
+    const [searchText, setSearchText] = useState(initialSearch)
+
+    // 3. Gọi API
     const {
         data: bookingsData,
         isLoading,
     } = useQuery({
-        queryKey: ['myBookings', page, limit, search],
-        queryFn: () => bookingApi.getBookingsHistory({ page, limit, search: search.length > 0 ? search : undefined }),
+        queryKey: ['myBookings', page, limit, queryConfig.search],
+        queryFn: () =>
+            bookingApi.getBookingsHistory({
+                page,
+                limit,
+                search: queryConfig.search
+            }),
         staleTime: 1000 * 60 * 3
     })
 
     const bookings = bookingsData?.data.data || []
     const pagination = bookingsData?.data.meta.pagination
 
-    // --- Tính toán Tóm tắt (Dựa trên dữ liệu trang hiện tại) ---
+    // --- LOGIC THANH TOÁN LẠI (ZaloPay) ---
+    const payMutation = useMutation({
+        mutationFn: (bookingId: number) => zalopayApi.createZaloPayPayment({ booking_id: bookingId }),
+        onSuccess: (data) => {
+            const paymentUrl = data.data.data?.payment_url
+            if (paymentUrl) {
+                toast.loading('Đang chuyển hướng đến cổng thanh toán...')
+                window.location.href = paymentUrl
+            } else {
+                toast.error('Không thể tạo link thanh toán. Vui lòng thử lại.')
+            }
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Lỗi kết nối thanh toán')
+        }
+    })
+
+    const handlePayment = (id: number) => {
+        payMutation.mutate(id)
+    }
+
+    // 4. Xử lý tìm kiếm
+    const debouncedSearch = useMemo(
+        () =>
+            debounce((value: string) => {
+                navigate({
+                    search: createSearchParams({
+                        ...queryConfig,
+                        search: value,
+                        page: '1'
+                    }).toString()
+                })
+            }, 500),
+        [navigate, queryConfig]
+    )
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value
+        setSearchText(value)
+        debouncedSearch(value)
+    }
+
+    // 5. Xử lý Limit
+    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLimit = e.target.value
+        navigate({
+            search: createSearchParams({
+                ...queryConfig,
+                limit: newLimit,
+                page: '1'
+            }).toString()
+        })
+    }
+
+    // --- Tính toán Tóm tắt ---
     const summaryStats = useMemo(() => {
         if (!bookings) return { total: 0, success: 0, pending: 0, cancel: 0 }
 
-        // Success: Confirmed + Completed
         const successCount = bookings.filter((b) => ['confirmed', 'completed'].includes(b.status)).length
-
-        // Pending: Pending Payment
         const pendingCount = bookings.filter((b) => b.status === 'pending').length
-
-        // Cancel/Processing: Cancelled + Pending Cancellation
         const cancelCount = bookings.filter((b) =>
             ['cancelled', 'pending_cancellation', 'cancellation_rejected'].includes(b.status)
         ).length
@@ -123,12 +188,11 @@ export default function Reservation() {
         }
     }, [bookings, pagination])
 
-    // Hàm mở/đóng modal
     const handleOpenDetailModal = (booking_id: number) => setSelectedBookingRef(booking_id)
     const handleCloseDetailModal = () => setSelectedBookingRef(null)
 
     return (
-        <div className='bg-gray-50'>
+        <div className='bg-gray-50 min-h-screen'>
             <div className='max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8'>
                 <h1 className='text-2xl font-bold text-gray-900 mb-6'>Lịch sử đặt chỗ của tôi</h1>
 
@@ -151,7 +215,7 @@ export default function Reservation() {
                             </div>
                             <div className='col-span-12 md:col-span-6 lg:col-span-3'>
                                 <div className='bg-white rounded-lg p-5 shadow-sm border-l-4 border-green-500'>
-                                    <p className='text-sm text-gray-500 font-medium'>Thành công (Vé đã xuất)</p>
+                                    <p className='text-sm text-gray-500 font-medium'>Thành công</p>
                                     <p className='text-3xl font-bold text-green-600 mt-1'>{summaryStats.success}</p>
                                 </div>
                             </div>
@@ -171,88 +235,67 @@ export default function Reservation() {
                     )}
                 </div>
 
-                {/* --- THANH CÔNG CỤ (Filter & Search) --- */}
-                <div className='bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4'>
-                    {/* Limit Selector */}
-                    <div className='flex items-center gap-2 text-sm text-gray-600'>
-                        <span>Hiển thị</span>
-                        <select
-                            value={limit}
-                            onChange={(e) => setLimit(Number(e.target.value))}
-                            className='border border-gray-300 rounded-md px-2 py-1 focus:ring-blue-500 focus:border-blue-500 outline-none'
-                        >
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                        </select>
-                        <span>bản ghi</span>
-                    </div>
-
-                    {/* Search Input */}
-                    <div className='relative w-full md:w-72'>
-                        <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                            <FontAwesomeIcon icon={faSearch} className='text-gray-400' />
+                {/* --- BẢNG DỮ LIỆU (TÍCH HỢP TRỰC TIẾP) --- */}
+                <div className='bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200'>
+                    {/* HEADER CỦA BẢNG (Chứa ô tìm kiếm & Limit) */}
+                    <div className='p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4'>
+                        {/* Ô tìm kiếm */}
+                        <div className='relative w-full md:w-72'>
+                            <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                                <FontAwesomeIcon icon={faSearch} className='text-gray-400' />
+                            </div>
+                            <input
+                                type='text'
+                                value={searchText}
+                                onChange={handleSearchChange}
+                                placeholder='Tìm theo mã đặt chỗ...'
+                                className='block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+                            />
                         </div>
-                        <input
-                            type='text'
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder='Tìm theo mã đặt chỗ, sân bay...'
-                            className='text-black block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
-                        />
-                    </div>
-                </div>
 
-                {/* --- BẢNG DỮ LIỆU --- */}
-                <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
+                        {/* Limit Selector */}
+                        <div className='flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-md border border-gray-300'>
+                            <span>Hiển thị</span>
+                            <select
+                                value={limit}
+                                onChange={handleLimitChange}
+                                className='border-none bg-transparent font-semibold outline-none cursor-pointer focus:ring-0 p-0'
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                            </select>
+                            <span>dòng</span>
+                        </div>
+                    </div>
+
                     <div className='overflow-x-auto'>
                         <table className='min-w-full divide-y divide-gray-200'>
                             <thead className='bg-gray-50'>
                                 <tr>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Mã đặt chỗ
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Ngày đặt
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Hành trình
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Chuyến bay
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
-                                        SL Khách
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                        Khách
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Tổng tiền
                                     </th>
-                                    <th
-                                        scope='col'
-                                        className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'
-                                    >
+                                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                                         Trạng thái
                                     </th>
-                                    <th scope='col' className='relative px-6 py-3'>
-                                        <span className='sr-only'>Hành động</span>
+                                    <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                        Hành động
                                     </th>
                                 </tr>
                             </thead>
@@ -261,8 +304,8 @@ export default function Reservation() {
 
                                 {!isLoading && bookings.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className='px-6 py-10 text-center text-sm text-gray-500'>
-                                            Không tìm thấy lịch sử đặt chỗ nào.
+                                        <td colSpan={8} className='px-6 py-10 text-center text-sm text-gray-500 italic'>
+                                            Không tìm thấy đơn đặt chỗ nào phù hợp.
                                         </td>
                                     </tr>
                                 )}
@@ -296,20 +339,41 @@ export default function Reservation() {
                                                     ? booking.passenger_count / 2
                                                     : booking.passenger_count}
                                             </td>
-                                            <td className='px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900'>
+                                            <td className='px-6 py-4 whitespace-nowrap text-sm font-semibold text-orange-600'>
                                                 {formatCurrencyVND(parseFloat(booking.total_amount))}
                                             </td>
                                             <td className='px-6 py-4 whitespace-nowrap'>
                                                 {getStatusBadge(booking.status)}
                                             </td>
                                             <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium'>
-                                                <button
-                                                    onClick={() => handleOpenDetailModal(Number(booking.booking_id))}
-                                                    className='text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1 ml-auto'
-                                                >
-                                                    <FontAwesomeIcon icon={faEye} className='w-3 h-3' />
-                                                    Chi tiết
-                                                </button>
+                                                <div className='flex justify-end items-center gap-2'>
+                                                    {/* --- NÚT THANH TOÁN NGAY (HIỂN THỊ KHI PENDING) --- */}
+                                                    {booking.status === 'pending' && (
+                                                        <button
+                                                            onClick={() => handlePayment(booking.booking_id)}
+                                                            className='bg-blue-600 text-white hover:bg-blue-700 px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 shadow-sm transition-all'
+                                                            title='Thanh toán ngay với ZaloPay'
+                                                            disabled={payMutation.isPending}
+                                                        >
+                                                            {payMutation.isPending ? (
+                                                                <FontAwesomeIcon icon={faSpinner} spin />
+                                                            ) : (
+                                                                <FontAwesomeIcon icon={faCreditCard} />
+                                                            )}
+                                                            Thanh toán
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleOpenDetailModal(Number(booking.booking_id))
+                                                        }
+                                                        className='text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-colors'
+                                                        title='Xem chi tiết'
+                                                    >
+                                                        <FontAwesomeIcon icon={faEye} />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -319,7 +383,7 @@ export default function Reservation() {
 
                     {/* Phân trang */}
                     {pagination && pagination.totalPages > 1 && (
-                        <div className='px-6 py-4 border-t border-gray-200 flex items-center justify-between'>
+                        <div className='px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50'>
                             <div className='text-sm text-gray-500'>
                                 Hiển thị {bookings.length} trên tổng số {pagination.totalItems} kết quả
                             </div>
