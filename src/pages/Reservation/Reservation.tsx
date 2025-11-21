@@ -249,17 +249,17 @@ export default function Reservation() {
                                 value={searchText}
                                 onChange={handleSearchChange}
                                 placeholder='Tìm theo mã đặt chỗ...'
-                                className='block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+                                className='text-black block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
                             />
                         </div>
 
                         {/* Limit Selector */}
-                        <div className='flex items-center gap-2 text-sm text-gray-600 bg-white px-3 py-1.5 rounded-md border border-gray-300'>
+                        <div className='flex items-center gap-2 text-sm text-gray-600 bg-white px-4 py-2 rounded-md border border-gray-300'>
                             <span>Hiển thị</span>
                             <select
                                 value={limit}
                                 onChange={handleLimitChange}
-                                className='border-none bg-transparent font-semibold outline-none cursor-pointer focus:ring-0 p-0'
+                                className=' border border-gray-400 rounded-md bg-transparent font-semibold outline-none cursor-pointer focus:ring-0 p-1 '
                             >
                                 <option value={5}>5</option>
                                 <option value={10}>10</option>
