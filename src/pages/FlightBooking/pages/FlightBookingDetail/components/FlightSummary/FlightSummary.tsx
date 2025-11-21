@@ -14,6 +14,7 @@ interface FlightSummaryProps {
     departureFlight: Flight | null
     returnFlight: Flight | null
     selectedPackage: PackageConfig
+    returnSelectedPackage: PackageConfig
     passengers: Passenger[]
     passengerCounts: {
         adults: number
@@ -35,6 +36,7 @@ export default function FlightSummary({
     departureFlight,
     returnFlight,
     selectedPackage,
+    returnSelectedPackage,
     passengers,
     passengerCounts,
     baggageOptions,
@@ -101,16 +103,18 @@ export default function FlightSummary({
                 totalPrice: 0
             }
 
-            console.log(selectedPackage)
+        const totalSelectedPackage = selectedPackage.pricePerPassenger + returnSelectedPackage.pricePerPassenger
         // 1. Tính giá vé
         // Giá người lớn = SL Người lớn * Giá Gói
-        const adultPrice = passengerCounts.adults * (selectedPackage.pricePerPassenger as number)
+        const adultPrice = passengerCounts.adults * (totalSelectedPackage as number)
         // Giá trẻ em = SL Trẻ em * Giá Gói
-        const childPrice = passengerCounts.children * (selectedPackage.pricePerPassenger as number)
+        const childPrice = passengerCounts.children * (totalSelectedPackage as number)
         // Giá em bé = SL Em bé * Giá cố định
         const infantPrice = passengerCounts.infants * INFANT_TICKET_PRICE
 
-        const basePrice = returnFlight ? (adultPrice + childPrice + infantPrice) * 2 : adultPrice + childPrice + infantPrice // Tổng giá vé cơ sở
+        const basePrice = returnFlight
+            ? (adultPrice + childPrice + infantPrice)
+            : adultPrice + childPrice + infantPrice // Tổng giá vé cơ sở
 
         // 2. Tính giá dịch vụ (Nhân 1000)
         let depBaggagePrice = 0

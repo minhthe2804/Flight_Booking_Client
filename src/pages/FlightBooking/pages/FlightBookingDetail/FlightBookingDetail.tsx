@@ -1,7 +1,7 @@
 // src/pages/FlightBookingDetail/FlightBookingDetail.tsx
 
 import { useContext, useState } from 'react'
-import {  useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -432,6 +432,7 @@ export default function FlightBookingDetail() {
                             departureFlight={departureFlight}
                             returnFlight={returnFlight}
                             selectedPackage={selectedPackage!}
+                            returnSelectedPackage={selectedReturnPackage!}
                             passengers={passengers}
                             passengerCounts={passengerCounts!}
                             baggageOptions={departureBaggageOptions}

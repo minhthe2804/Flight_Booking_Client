@@ -104,7 +104,8 @@ export default function FlightBookingPayment() {
     const { flightBookingData, flightServicesData, setflightServicesData, setFlightBookingData } =
         useContext(AppContext)
 
-    const isSessionValid = getFlightServicesFromLS() && getFlightBookingDataFromLS() && flightServicesData.departureFlight
+    const isSessionValid =
+        getFlightServicesFromLS() && getFlightBookingDataFromLS() && flightServicesData.departureFlight
 
     // Effect chuyển hướng (chạy sau khi render)
     useEffect(() => {
@@ -124,7 +125,8 @@ export default function FlightBookingPayment() {
 
     const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null)
 
-    const { departureFlight, passengerCounts, returnFlight, selectedPackage } = flightServicesData
+    const { departureFlight, passengerCounts, returnFlight, selectedPackage, selectedReturnPackage } =
+        flightServicesData
 
     const {
         departure_flight_id,
@@ -255,12 +257,19 @@ export default function FlightBookingPayment() {
             {}
         )
 
-        const adultPrice = passengerCounts.adults * (selectedPackage?.pricePerPassenger as number)
-        const childPrice = passengerCounts.children * (selectedPackage?.pricePerPassenger as number)
+        const totalSelectedPackage = selectedPackage.pricePerPassenger + selectedReturnPackage.pricePerPassenger
+        // 1. Tính giá vé
+        // Giá người lớn = SL Người lớn * Giá Gói
+        const adultPrice = passengerCounts.adults * (totalSelectedPackage as number)
+        // Giá trẻ em = SL Trẻ em * Giá Gói
+        const childPrice = passengerCounts.children * (totalSelectedPackage as number)
+        // Giá em bé = SL Em bé * Giá cố định
         const infantPrice = passengerCounts.infants * INFANT_TICKET_PRICE
-        const basePrice = returnFlight
-            ? (adultPrice + childPrice + infantPrice) * 2
-            : adultPrice + childPrice + infantPrice
+
+        const basePrice = returnFlight ? adultPrice + childPrice + infantPrice : adultPrice + childPrice + infantPrice // Tổng giá vé cơ sở
+
+        // 2. Tính giá dịch vụ (Nhân 1000)
+
         let depBaggagePrice = 0,
             retBaggagePrice = 0,
             depMealPrice = 0,
