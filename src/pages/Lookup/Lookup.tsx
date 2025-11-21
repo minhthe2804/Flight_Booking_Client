@@ -1,4 +1,4 @@
-import { faInfo, faPlaneUp, faSpinner, faTicket, faReceipt } from '@fortawesome/free-solid-svg-icons'
+import { faInfo, faPlaneUp, faSpinner, faTicket } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Button from '~/components/Button'
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -15,7 +15,6 @@ import {
     formatCurrencyVND,
     formatDateForAPI,
     formatDurationLookup,
-    formatDateTime
 } from '~/utils/utils'
 import { lookupApi } from '~/apis/lookup.api'
 
