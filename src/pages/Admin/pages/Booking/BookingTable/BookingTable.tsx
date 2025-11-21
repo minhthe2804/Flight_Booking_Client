@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
     faEye,
@@ -8,7 +8,7 @@ import {
     faTimesCircle,
     faExclamationCircle,
     faSpinner,
-    faCheckDouble,
+    faCheck,
     faSearch,
     faTimes
 } from '@fortawesome/free-solid-svg-icons'
@@ -19,12 +19,14 @@ interface BookingTableProps {
     bookings: Booking[] | any
     isLoading: boolean
     onViewDetail: (id: number) => void
-    onCancel: (id: number) => void
-    adminTable?: boolean
+    onCancel: (id: number) => void // Đây là nút "Hủy" hoặc "Duyệt Hủy"
+    onReject?: (id: number) => void // Nút "Từ chối Hủy" (Optional)
     onSearch?: (value: string) => void
+    searchValue?: string
+    title?: string
+    isAdmin?: boolean
 }
 
-// Helper hiển thị Badge
 const getStatusBadge = (status: string) => {
     switch (status) {
         case 'confirmed':
@@ -73,10 +75,17 @@ export default function BookingTable({
     isLoading,
     onViewDetail,
     onCancel,
-    adminTable,
-    onSearch
+    onReject,
+    onSearch,
+    searchValue,
+    title,
+    isAdmin
 }: BookingTableProps) {
-    const [keyword, setKeyword] = useState('')
+    const [keyword, setKeyword] = useState(searchValue || '')
+
+    useEffect(() => {
+        setKeyword(searchValue || '')
+    }, [searchValue])
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -87,6 +96,7 @@ export default function BookingTable({
         setKeyword('')
         if (onSearch) onSearch('')
     }
+
     if (isLoading)
         return (
             <div className='p-10 text-center'>
@@ -95,33 +105,42 @@ export default function BookingTable({
         )
 
     return (
-        <div className='bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200'>
-            {/* --- THANH TÌM KIẾM (Nằm góc phải) --- */}
-            {onSearch && (
-                <div className='px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-end'>
-                    <form onSubmit={handleSearchSubmit} className='relative w-full max-w-xs'>
-                        <input
-                            type='text'
-                            className='w-full text-black pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all'
-                            placeholder='Tìm theo mã đặt chỗ...'
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                        />
-                        <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                            <FontAwesomeIcon icon={faSearch} className='text-gray-400' />
-                        </div>
-                        {keyword && (
-                            <button
-                                type='button'
-                                onClick={handleClearSearch}
-                                className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer'
-                            >
-                                <FontAwesomeIcon icon={faTimes} />
-                            </button>
-                        )}
-                    </form>
+        <div className='bg-white rounded-lg shadow-md overflow-hidden border border-gray-200'>
+            {/* HEADER (Tiêu đề + Tìm kiếm) */}
+            {(title || onSearch) && (
+                <div className='px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center gap-4'>
+                    {title ? (
+                        <h3 className='text-lg font-bold text-gray-800 whitespace-nowrap'>{title}</h3>
+                    ) : (
+                        <div className='hidden sm:block'></div>
+                    )}
+
+                    {onSearch && (
+                        <form onSubmit={handleSearchSubmit} className='relative w-full sm:w-72 sm:ml-auto'>
+                            <input
+                                type='text'
+                                className='text-black w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all'
+                                placeholder='Tìm theo mã đặt chỗ...'
+                                value={keyword}
+                                onChange={(e) => setKeyword(e.target.value)}
+                            />
+                            <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                                <FontAwesomeIcon icon={faSearch} className='text-gray-400' />
+                            </div>
+                            {keyword && (
+                                <button
+                                    type='button'
+                                    onClick={handleClearSearch}
+                                    className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer'
+                                >
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            )}
+                        </form>
+                    )}
                 </div>
             )}
+
             <div className='overflow-x-auto'>
                 <table className='min-w-full divide-y divide-gray-200'>
                     <thead className='bg-gray-50'>
@@ -149,13 +168,13 @@ export default function BookingTable({
                     <tbody className='bg-white divide-y divide-gray-200'>
                         {bookings.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className='p-6 text-center text-gray-500 italic'>
-                                    Không có dữ liệu đặt chỗ.
+                                <td colSpan={6} className='p-8 text-center text-gray-500 italic'>
+                                    Không tìm thấy dữ liệu đặt chỗ nào.
                                 </td>
                             </tr>
                         ) : (
                             bookings.map((booking: Booking) => (
-                                <tr key={booking.booking_id} className='hover:bg-gray-50 transition-colors'>
+                                <tr key={booking.booking_id} className='hover:bg-blue-50 transition-colors'>
                                     <td className='px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600'>
                                         {booking.booking_reference}
                                     </td>
@@ -176,22 +195,50 @@ export default function BookingTable({
                                         <div className='flex justify-end items-center gap-2'>
                                             <button
                                                 onClick={() => onViewDetail(booking.booking_id)}
-                                                className='text-gray-500 hover:text-blue-600 p-1.5 rounded-full hover:bg-blue-50 transition-colors'
+                                                className='text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-blue-100 transition-colors'
                                                 title='Xem chi tiết'
                                             >
                                                 <FontAwesomeIcon icon={faEye} />
                                             </button>
 
-                                            {/* Logic hiển thị nút Hành động */}
-                                            {adminTable && booking.status === 'pending_cancellation' && (
-                                                // Nếu đang chờ hủy -> Hiện nút "Xử lý" nổi bật
-                                                <button
-                                                    onClick={() => onCancel(booking.booking_id)}
-                                                    className='bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1 border border-red-200 shadow-sm'
-                                                    title='Xử lý yêu cầu hủy'
-                                                >
-                                                    <FontAwesomeIcon icon={faCheckDouble} /> Xử lý
-                                                </button>
+                                            {/* --- LOGIC NÚT HÀNH ĐỘNG CHO ADMIN --- */}
+
+                                            {/* TRƯỜNG HỢP 1: Yêu cầu hủy vé (pending_cancellation) */}
+                                            {isAdmin && booking.status === 'pending_cancellation' ? (
+                                                <div className='flex gap-1'>
+                                                    {/* Nút Duyệt (Màu xanh/đỏ tùy logic) - Ở đây dùng cancel làm nút duyệt */}
+                                                    <button
+                                                        onClick={() => onCancel(booking.booking_id)}
+                                                        className='bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1 border border-green-200 shadow-sm transition-all'
+                                                        title='Duyệt hủy vé'
+                                                    >
+                                                        <FontAwesomeIcon icon={faCheck} /> Duyệt
+                                                    </button>
+
+                                                    {/* Nút Từ chối (Màu xám/đỏ) */}
+                                                    {onReject && (
+                                                        <button
+                                                            onClick={() => onReject(booking.booking_id)}
+                                                            className='bg-gray-100 text-gray-600 hover:bg-gray-200 px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1 border border-gray-300 shadow-sm transition-all'
+                                                            title='Từ chối hủy vé'
+                                                        >
+                                                            <FontAwesomeIcon icon={faBan} /> Từ chối
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                // TRƯỜNG HỢP 2: Các trạng thái khác (Confirmed, Pending) -> Cho phép Hủy chủ động
+                                                isAdmin && !['cancelled', 'completed', 'cancellation_rejected'].includes(
+                                                    booking.status
+                                                ) && (
+                                                    <button
+                                                        onClick={() => onCancel(booking.booking_id)}
+                                                        className='text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors'
+                                                        title='Hủy vé này'
+                                                    >
+                                                        <FontAwesomeIcon icon={faBan} />
+                                                    </button>
+                                                )
                                             )}
                                         </div>
                                     </td>
