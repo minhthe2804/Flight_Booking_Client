@@ -1,6 +1,7 @@
 // src/components/RecommendationsResponse.tsx
 
 import React from 'react'
+import { Link } from 'react-router-dom'
 import * as T from '~/types/aiTypes'
 import {
     PaperAirplaneIcon,
@@ -9,6 +10,7 @@ import {
     SparklesIcon
 } from '@heroicons/react/24/outline'
 import { formatCurrencyVND } from '~/utils/utils'
+import { path } from '~/constants/path'
 
 interface RecommendationsResponseProps {
     data: T.RecommendationsData // Đây là object { recommendations: [...] }
@@ -39,8 +41,21 @@ const FlightCard: React.FC<{ rec: T.NewRecommendation }> = ({ rec }) => {
         : null
     const formattedPrice = priceValue ? formatCurrencyVND(priceValue) : 'Đang cập nhật'
 
+    // Tạo URL để navigate đến trang SearchFlight
+    const fromCode = rec.departure.airport.code
+    const toCode = rec.arrival.airport.code
+    const departureDate = rec.departure.time.split('T')[0] // Format: YYYY-MM-DD
+    const adults = 1 // Mặc định 1 người lớn
+    const children = 0
+    const infants = 0
+
+    const searchUrl = `${path.searchFlight}?departure_airport_code=${fromCode}&arrival_airport_code=${toCode}&departure_date=${departureDate}&adults=${adults}&children=${children}&infants=${infants}`
+
     return (
-        <div className='bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden'>
+        <Link 
+            to={searchUrl}
+            className='block bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-blue-500 transition-all duration-200 cursor-pointer'
+        >
             {/* Header (Lý do) */}
             <div className='p-3 bg-yellow-50 border-b border-yellow-200'>
                 <div className='flex items-center space-x-2'>
@@ -116,8 +131,15 @@ const FlightCard: React.FC<{ rec: T.NewRecommendation }> = ({ rec }) => {
                         </p>
                     )}
                 </div>
+
+                {/* Button chọn chuyến bay */}
+                <div className='border-t pt-3 mt-3'>
+                    <div className='w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold text-center hover:bg-blue-700 transition-colors duration-200'>
+                        Chọn chuyến bay này
+                    </div>
+                </div>
             </div>
-        </div>
+        </Link>
     )
 }
 
