@@ -8,6 +8,7 @@ import {
     ClockIcon,
     SparklesIcon
 } from '@heroicons/react/24/outline'
+import { formatCurrencyVND } from '~/utils/utils'
 
 interface RecommendationsResponseProps {
     data: T.RecommendationsData // Đây là object { recommendations: [...] }
@@ -29,10 +30,14 @@ const formatDate = (dateString: string) => {
 
 // Component cho một thẻ chuyến bay
 const FlightCard: React.FC<{ rec: T.NewRecommendation }> = ({ rec }) => {
-    // Lấy giá (ưu tiên economy, nếu không có thì business)
-    // API của bạn trả về `starting_price: null` và `available_seats: 0`
-    // Trong thực tế, bạn sẽ dùng giá Economy/Business
-    const price = rec.starting_price || 'N/A' // Cần điều chỉnh nếu API trả về giá
+    // Lấy giá và format đúng cách
+    // starting_price có thể là string, number hoặc null
+    const priceValue = rec.starting_price 
+        ? (typeof rec.starting_price === 'string' 
+            ? parseFloat(rec.starting_price) 
+            : rec.starting_price)
+        : null
+    const formattedPrice = priceValue ? formatCurrencyVND(priceValue) : 'Đang cập nhật'
 
     return (
         <div className='bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden'>
@@ -99,9 +104,17 @@ const FlightCard: React.FC<{ rec: T.NewRecommendation }> = ({ rec }) => {
                 </div>
 
                 {/* Giá vé */}
-                <div className='text-right'>
-                    <span className='text-xl font-bold text-red-600'>{price}</span>
-                    {price !== 'N/A' && <span className='text-sm text-gray-500'> / vé</span>}
+                <div className='text-right border-t pt-3 mt-3'>
+                    <p className='text-xs text-gray-500 mb-1'>Giá vé chỉ từ</p>
+                    <div className='flex items-baseline justify-end gap-1'>
+                        <span className='text-2xl font-bold text-red-600'>{formattedPrice}</span>
+                        {priceValue && <span className='text-sm text-gray-500'>/ vé</span>}
+                    </div>
+                    {rec.available_seats > 0 && (
+                        <p className='text-xs text-green-600 mt-1'>
+                            Còn {rec.available_seats} chỗ trống
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

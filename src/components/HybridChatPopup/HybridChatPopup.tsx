@@ -11,6 +11,8 @@ import { aiChatApi } from '~/apis/aiChat.api'
 import { errorHandlingApi } from '~/apis/errorHandling.api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faRobot, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { parseFlightSearchQuery } from '~/utils/flightSearchParser'
+import { airports } from '~/constants/airports'
 
 const MAX_MESSAGE_LENGTH = 500
 const CHAT_MODE: 'basic' | 'multi' = 'multi'
@@ -309,6 +311,34 @@ const HybridChatPopup: React.FC<HybridChatPopupProps> = ({ context, contextFamil
         const command = args[0].toLowerCase()
 
         try {
+            // 2.5. Kiểm tra tìm kiếm chuyến bay bằng ngôn ngữ tự nhiên (MỚI)
+            const parsedSearch = parseFlightSearchQuery(userText, airports)
+            if (parsedSearch.isValid && parsedSearch.confidence >= 0.6) {
+                // Nếu có đủ thông tin, gọi API recommendations
+                if (parsedSearch.departure_airport_code && 
+                    parsedSearch.arrival_airport_code && 
+                    parsedSearch.departure_date) {
+                    setRecParams({
+                        departure_airport_code: parsedSearch.departure_airport_code,
+                        arrival_airport_code: parsedSearch.arrival_airport_code,
+                        departure_date: parsedSearch.departure_date,
+                        limit: 5
+                    })
+                    addMessage(
+                        `Đang tìm kiếm chuyến bay từ ${parsedSearch.departure_airport_code} đến ${parsedSearch.arrival_airport_code} ngày ${parsedSearch.departure_date}...`,
+                        'bot'
+                    )
+                    return
+                } else if (parsedSearch.departure_airport_code && parsedSearch.arrival_airport_code) {
+                    // Nếu thiếu ngày, hỏi người dùng
+                    addMessage(
+                        `Tôi đã hiểu bạn muốn tìm chuyến bay từ ${parsedSearch.departure_airport_code} đến ${parsedSearch.arrival_airport_code}. Bạn muốn đi ngày nào?`,
+                        'bot'
+                    )
+                    return
+                }
+            }
+
             // 3. Lệnh Test
             if (userTextLower === 'test 401' || userTextLower === 'unauthorized') {
                 unauthorizedMutation.mutate()
